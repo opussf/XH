@@ -1,0 +1,101 @@
+<project name="XH" default="package">
+
+	<patternset id="addon.files">
+		<include name="src/*.lua"/>
+		<include name="src/*.toc"/>
+		<include name="src/*.xml"/>
+		<include name="src/Readme.txt"/>
+	</patternset>
+
+	<target name="init">
+		<tstamp/>
+		<property environment="env"/>
+		<property name="build.number" value="${env.BUILD_NUMBER}"/>
+		<property file="build.properties"/>
+		<property name="XH.zip" value="XH_${XH.version}_${build.number}.zip"/>
+	</target>
+
+	<target name="clean" description="Cleans old builds">
+		<delete dir="build" verbose="true"/>
+		<delete dir="dest" verbose="true"/>
+	</target>
+
+	<target name="package" depends="init">
+		<mkdir	dir="build/XH"/>
+		<mkdir	dir="dest"/>
+		<copy 	todir="build/XH" flatten="true">
+			<fileset dir=".">
+				<patternset refid="addon.files"/>
+			</fileset>
+			<filterset>
+				<filter token="VERSION" value="${XH.version} (${build.number})"/>
+			</filterset>
+		</copy>
+		<zip 	destfile="dest/${XH.zip}"
+				basedir="build"
+				includes="XH/**"/>
+		<delete dir="build" verbose="true"/>
+	</target>
+	
+	<target name="web.deploy" description="deploys the web site">
+		<mkdir	dir="dest/web"/>
+		<zip	destfile="dest/web/XHweb.zip"
+				basedir="site"
+				includes="**"/>
+		<delete verbose="true">
+			<fileset dir="${deploy.dir}">
+				<patternset id="web.files">
+					<include name="*.jpg"/>
+					<include name="*.gif"/>
+					<include name="*.png"/>
+					<include name="*.php"/>
+					<include name="*.css"/>
+					<include name="*.xsl"/>
+				</patternset>
+			</fileset>
+		</delete>
+		<copy todir="${deploy.dir}" verbose="true">
+			<fileset dir="site">
+				<patternset refid="web.files"/>
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="deploy" depends="deploy.check" description="deploys the file" if="deploy.run">
+		<copy todir="${deploy.dir}">
+			<fileset dir="${deploy.from}">
+				<include name="*.zip"/>
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="deploy.check">
+		<condition property="deploy.run">
+			<and>
+				<available file="${deploy.from}" type="dir"/>
+				<available file="${deploy.dir}" type="dir"/>
+			</and>
+		</condition>
+	</target>
+
+	<target name="test" description="copy files directly to WoW for testing">
+		<property name="interface.dir" value="/Applications/World of Warcraft/Interface/AddOns/"/>
+		<property name="test.dir" value="${interface.dir}/${ant.project.name}"/>
+		
+		<mkdir 	dir="${test.dir}"/>
+		<copy 	todir="${test.dir}" verbose="true">
+			<fileset dir="src">
+				<include name="*.lua"/>
+				<include name="*.toc"/>
+				<include name="*.xml"/>
+				<include name="Readme.txt"/>
+			</fileset>
+			<filterset>
+				<filter token="VERSION" value="${version.number}"/>
+			</filterset>
+		</copy>
+		<copy	tofile="backupdata/XH.saved"
+			file="/Applications/World of Warcraft/WTF/Account/OPUSSF/SavedVariables/XH.lua"/>
+	</target>
+
+</project>
