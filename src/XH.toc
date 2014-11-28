@@ -1,4 +1,4 @@
-## Interface: 50400
+## Interface: @INTERFACE@
 ## Title: XH
 ## Notes: XP/hour and time to lvl tracker.  Includes a dungeon timer.
 ## Author: sistersally of hyjal
