@@ -1,64 +1,122 @@
 <project name="XH" default="package">
 
-	<patternset id="addon.files">
-		<include name="src/*.lua"/>
-		<include name="src/*.toc"/>
-		<include name="src/*.xml"/>
-		<include name="src/Readme.txt"/>
-	</patternset>
+	<tstamp/>
+	<property file="build.properties"/>
+	<property environment="env"/>
+	<property name="env.BUILD_NUMBER" value=""/>
+	<property name="build.number" value=""/>
+	<!--  Pull git repo info -->
+	<exec executable="git" dir="." outputproperty="git.revision" failifexecutionfails="false" errorproperty="">
+		<arg line="describe --tags --always HEAD" />
+	</exec>
+	<condition property="repository.version" value="${git.revision}" else="unknown">
+		<and>
+			<isset property="git.revision"/>
+			<length string="${git.revision}" trim="yes" length="0" when="greater"/>
+		</and>
+	</condition>
+	<!-- find gitbranch -->
+	<exec executable="git" dir="." outputproperty="git.branch" failifexecutionfails="false" errorproperty="">
+		<arg line="rev-parse --abbrev-ref HEAD"/>
+	</exec>
+	<condition property="branch" value="-${git.branch}" else="">
+		<and>
+			<isset property="git.branch"/>
+			<not>
+				<or>
+					<equals arg1="${git.branch}" arg2="master"/>
+					<equals arg1="${git.branch}" arg2="HEAD"/>
+				</or>
+			</not>
+		</and>
+	</condition>
 
-	<target name="init">
-		<tstamp/>
-		<property environment="env"/>
-		<property name="build.number" value="${env.BUILD_NUMBER}"/>
-		<property file="build.properties"/>
-		<property name="XH.zip" value="XH_${XH.version}_${build.number}.zip"/>
-	</target>
+	<property name="version.number" value="${repository.version}${branch}${build.number}"/>
+	<echo>Building: ${version.number}</echo>
+	<!-- end git repo info -->
+
+	<property name="project.zip" value="${ant.project.name}_${version.number}.zip"/>
+	<property name="test.dir" location="test"/>
+
+	<property name="target.dir" location="target"/>
+	<property name="working.dir" location="${target.dir}/working"/>
+	<property name="report.dir" location="${target.dir}/reports"/>
+
+	<condition property="test.check">
+		<available file="${test.dir}/test.lua" type="file"/>
+	</condition>
+
+	<filter token="VERSION" value="${version.number}"/>
+	<filter token="INTERFACE" value="${INTERFACE}"/>
 
 	<target name="clean" description="Cleans old builds">
-		<delete dir="build" verbose="true"/>
-		<delete dir="dest" verbose="true"/>
+		<delete dir="target" verbose="true"/>
 	</target>
 
-	<target name="package" depends="init">
-		<mkdir	dir="build/XH"/>
-		<mkdir	dir="dest"/>
-		<copy 	todir="build/XH" flatten="true">
-			<fileset dir=".">
-				<patternset refid="addon.files"/>
-			</fileset>
-			<filterset>
-				<filter token="VERSION" value="${XH.version} (${build.number})"/>
-			</filterset>
-		</copy>
-		<zip 	destfile="dest/${XH.zip}"
-				basedir="build"
-				includes="XH/**"/>
-		<delete dir="build" verbose="true"/>
+	<target name="changelog" description="Creates a changelog">
+		<mkdir dir="${working.dir}"/>
+		<exec executable="git" dir=".">
+			<arg line="log --graph --pretty=format:'%h %ci - %d %s &lt;%an&gt;' ${git.tag}.."/>
+			<redirector output="${working.dir}/changelog.txt"/>
+		</exec>
 	</target>
-	
+
+	<target name="package" depends="changelog, test" description="Create a deploy package">
+		<property name="package.dir" location="${working.dir}/${ant.project.name}"/>
+		<copy	todir="${package.dir}" filtering="true">
+			<fileset dir="src">
+				<include name="*.lua"/>
+				<include name="*.toc"/>
+				<include name="*.xml"/>
+				<include name="*.txt"/>
+			</fileset>
+			<fileset dir="${working.dir}">
+				<include name="*.txt"/>
+			</fileset>
+		</copy>
+		<zip 	destfile="${target.dir}/${project.zip}"
+				basedir="${working.dir}"
+				includes="${ant.project.name}/**"/>
+		<delete dir="${package.dir}" verbose="false"/>
+		<checksum file="${target.dir}/${project.zip}"
+				  property="zip.md5" />
+		<echo file="${target.dir}/${project.zip}.md5">${zip.md5} ${project.zip}${line.separator}</echo>
+	</target>
+
 	<target name="web.deploy" description="deploys the web site">
-		<mkdir	dir="dest/web"/>
-		<zip	destfile="dest/web/XHweb.zip"
+		<mkdir	dir="${target.dir}/web"/>
+		<zip	destfile="${target.dir}/${ant.project.name}-web.zip"
 				basedir="site"
 				includes="**"/>
-		<delete verbose="true">
-			<fileset dir="${deploy.dir}">
-				<patternset id="web.files">
-					<include name="*.jpg"/>
-					<include name="*.gif"/>
-					<include name="*.png"/>
-					<include name="*.php"/>
-					<include name="*.css"/>
-					<include name="*.xsl"/>
-				</patternset>
-			</fileset>
-		</delete>
-		<copy todir="${deploy.dir}" verbose="true">
-			<fileset dir="site">
-				<patternset refid="web.files"/>
+		<delete dir="${target.dir}/web" verbose="true"/>
+	</target>
+
+	<target name="wow" depends="test" description="copy files to currnet wow install">
+		<property name="addon.dir" location="/Applications/World of Warcraft/Interface/Addons/${ant.project.name}"/>
+		<mkdir dir="${addon.dir}"/>
+		<copy todir="${addon.dir}" filtering="true">
+			<fileset dir="src">
+				<include name="*.lua"/>
+				<include name="*.toc"/>
+				<include name="*.xml"/>
+				<include name="Readme.txt"/>
 			</fileset>
 		</copy>
+	</target>
+
+	<target name="test" description="run unit tests" if="test.check">
+		<mkdir  dir="${report.dir}"/>
+		<exec executable="lua" dir="test" resultproperty="testResult">
+			<arg value="test.lua"/>
+		</exec>
+		<move todir="${report.dir}" file="${test.dir}/testOut.xml"/>
+		<fail message="The tests failed. Please see the output for details.">
+			<condition>
+				<not>
+					<equals arg1="${testResult}" arg2="0"/>
+				</not>
+			</condition>
+		</fail>
 	</target>
 
 	<target name="deploy" depends="deploy.check" description="deploys the file" if="deploy.run">
@@ -76,26 +134,6 @@
 				<available file="${deploy.dir}" type="dir"/>
 			</and>
 		</condition>
-	</target>
-
-	<target name="test" description="copy files directly to WoW for testing">
-		<property name="interface.dir" value="/Applications/World of Warcraft/Interface/AddOns/"/>
-		<property name="test.dir" value="${interface.dir}/${ant.project.name}"/>
-		
-		<mkdir 	dir="${test.dir}"/>
-		<copy 	todir="${test.dir}" verbose="true">
-			<fileset dir="src">
-				<include name="*.lua"/>
-				<include name="*.toc"/>
-				<include name="*.xml"/>
-				<include name="Readme.txt"/>
-			</fileset>
-			<filterset>
-				<filter token="VERSION" value="${version.number}"/>
-			</filterset>
-		</copy>
-		<copy	tofile="backupdata/XH.saved"
-			file="/Applications/World of Warcraft/WTF/Account/OPUSSF/SavedVariables/XH.lua"/>
 	</target>
 
 </project>
