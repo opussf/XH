@@ -379,31 +379,30 @@ function XH.MakeTimeFormat(timeToGo,sixty)
 	end
 end
 function XH.SecondsToTime(secsIn)
-	if (not secsIn) then
-		return;
+	if (not secsIn or secsIn < 0) then
+		return ""
 	end
 	-- Blizzard's SecondsToTime() function cannot be printed into Chat.  Has bad escape codes.
 	XH.tempVars.day, XH.tempVars.hour, XH.tempVars.minute, XH.tempVars.sec = 0, 0, 0, 0;
 
-	XH.tempVars.day = string.format("%i", (secsIn / 86400)) * 1;	-- LUA integer conversion
-	if XH.tempVars.day < 0 then return ""; end
-	secsIn = secsIn - (XH.tempVars.day * 86400);
-	XH.tempVars.hour = string.format("%i", (secsIn / 3600)) * 1;
+	XH.tempVars.day = math.floor( secsIn / 86400 )
+	secsIn = secsIn - ( XH.tempVars.day * 86400 )
+	XH.tempVars.hour = math.floor( secsIn / 3600 )
+	secsIn = secsIn - ( XH.tempVars.hour * 3600 )
+	XH.tempVars.minute = math.floor( secsIn / 60 )
+	XH.tempVars.sec = secsIn - ( XH.tempVars.minute * 60 )
+
 	if (XH.tempVars.day > 0) then
 		return string.format("%i Day %i Hour", XH.tempVars.day, XH.tempVars.hour);
 	end
-	secsIn = secsIn - (XH.tempVars.hour * 3600);
-	XH.tempVars.minute = string.format("%i", (secsIn / 60)) * 1;
 	if (XH.tempVars.hour > 0) then
 		return string.format("%ih %im", XH.tempVars.hour, XH.tempVars.minute);
 	end
-	XH.tempVars.sec = secsIn - (XH.tempVars.minute * 60);
 	if (XH.tempVars.minute>0) then
 		return string.format("%im %is", XH.tempVars.minute, XH.tempVars.sec);
 	end
 	return string.format("%is", XH.tempVars.sec);
 end
-
 XH_SecondsToTime = XH.SecondsToTime;
 
 -- Converts string.format to a string.find pattern: "%s hits %s for %d." to "(.+) hits (.+) for (%d+)"
