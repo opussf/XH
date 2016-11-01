@@ -1,4 +1,4 @@
-XH_MSG_VERSION = GetAddOnMetadata("XH","Version");
+''XH_MSG_VERSION = GetAddOnMetadata("XH","Version");
 
 -- Colours
 COLOR_RED = "|cffff0000";
@@ -99,9 +99,9 @@ function XH_OnLoad()
 	--register slash commands
 	SLASH_XH1 = "/xh";
 	SlashCmdList["XH"] = function(msg) XH.Command(msg); end
-	
+
 	XHFrame:RegisterEvent("ADDON_LOADED");
-	
+
 	--ChatFrame_AddMessageEventFilter("CHAT_MSG_COMBAT_FACTION_CHANGE", XH.FactionGainEvent);
 	ChatFrame_AddMessageEventFilter("CHAT_MSG_COMBAT_XP_GAIN", XH.XPGainEvent);
 	ChatFrame_AddMessageEventFilter("CHAT_MSG_LOOT", XH.LootGainEvent);
@@ -114,15 +114,15 @@ function XH_OnLoad()
 	XHFrame:RegisterEvent("PLAYER_REGEN_DISABLED");
 	XHFrame:RegisterEvent("PLAYER_REGEN_ENABLED");
 	XHFrame:RegisterEvent("CHAT_MSG_SKILL");
-	
+
 	--
 	XHFrame:RegisterEvent("UI_ERROR_MESSAGE");
 	--XHFrame:RegisterEvent("PARTY_MEMBERS_CHANGED");
-		
+
 	-- Instance Whisper return
 	ChatFrame_AddMessageEventFilter("CHAT_MSG_WHISPER", XH.GetWhisper);
 --	ChatFrame_AddMessageEventFilter("CHAT_MSG_BN_WHISPER", XH.GetWhisper);
-	
+
 	-- TimePlayed
 	XHFrame:RegisterEvent("TIME_PLAYED_MSG");
 	--XHFrame:RegisterAllEvents();
@@ -138,15 +138,15 @@ function XH.Start()
 	-- Rested Bar
 	XH_XPBarRested:SetMinMaxValues(0, 150);
 	XH_XPBarRested:SetValue(150);
-	
+
 	-- InstanceTimer
 	XH_InstanceTimerBack:SetMinMaxValues( 0, 1 );
 	XH_InstanceTimerBack:SetValue( 1 );
-	
+
 	-- SkillBars
 	XH_SkillBar:Hide()
 	XH_SkillBarCD:Hide()
-	
+
 end
 function XH.ADDON_LOADED()
 	XH.startedTime = time();
@@ -158,18 +158,18 @@ function XH.ADDON_LOADED()
 	XH.UpdateBars();
 	XH.XPGains.session = XH.InitRate(0, UnitXPMax("player") - UnitXP("player"));
 	XH.bubbleSize = UnitXPMax("player") / 20;
-	
+
 	now = time();
 --	for x=(now-(XH.timeRange)*60), (now+500) do
 --		XH.XPGains.session.rolling[x] = 1;
 --	end
-	
+
 end
 function XH.UpdateBars()
 	XH.UpdateXPBarText();
 	--XH_XPBarRested:SetMinMaxValues(0, 150);
 	XH_XPBarRested:SetValue(XH.restedPC);
-	
+
 	-- update instance bar
 	-- XH_InstanceTimerBar
 	if (not XH.mouseOver) and (XH_zoneTracker ~= nil) and (XH_zoneTracker.start ~= nil) and    -- zoneTracker exists, and start registered
@@ -228,7 +228,7 @@ function XH.UpdateBars()
 		if XH_zoneTracker.finish == 0 then
 			for key,f in pairs(XH.reportMilestoneFunctions) do
 				if (f(elapsed,best,avg,longest)) and (not XH_zoneTracker.reportMilestones[key]) then
-					if XH.instanceAverage[zone].sd > 0 then 
+					if XH.instanceAverage[zone].sd > 0 then
 						XH.PartyPrint(XH_SecondsToTime(elapsed)..XH.reportMilestoneMessages[key]);
 					end
 					XH_zoneTracker.reportMilestones[key] = true;
@@ -241,10 +241,10 @@ function XH.UpdateBars()
 		XH_RepBar:Show();
 		XH_RepText:Show();
 	end
-	
+
 	-- Update Rep Bar
 	XH.UpdateRepBarText();
-	
+
 	-- Skill bar
 	if (XH.skillUpdate) then
 		if (time() - XH.skillUpdate > XH_options.showSkill) then
@@ -309,7 +309,7 @@ function XH.PrintHelp()
 	XH.Print("/xh none         -> Reports only to self")
 	XH.Print("/xh times        -> Shows instance times");
 
-	
+
 --	XH.Print("       /xh info   -> Shows info");
 --	XH.Print("       /xh update # -> update every # seconds")
 --	XH.Print("       /xh showskill # -> sets display time for skill bar");
@@ -331,7 +331,7 @@ function XH.Command(msg)
 		XH.Print("zoneTracker has been reset.");
 		return;
 	elseif (cmd == "party") or (cmd == "guild") or (cmd == "none") then
-		XH.ReportSettings( cmd );	
+		XH.ReportSettings( cmd );
 	elseif (cmd == "times") then
 		XH.InstanceReport( param );
 	elseif (cmd == "list") then
@@ -341,7 +341,7 @@ function XH.Command(msg)
 	elseif (cmd == "test") then
 		XH.Test();
 	elseif (cmd == "rates") then
-		XH_options.showRateGraphs = not XH_options.showRateGraphs and true or false;	
+		XH_options.showRateGraphs = not XH_options.showRateGraphs and true or false;
 		XH.Print("Rate graphs: "..(XH_options.showRateGraphs and "Enabled" or "Disabled"));
 	else
 		XH.Print("'"..cmd.."' not known");
@@ -384,7 +384,7 @@ function XH.SecondsToTime(secsIn)
 	end
 	-- Blizzard's SecondsToTime() function cannot be printed into Chat.  Has bad escape codes.
 	XH.tempVars.day, XH.tempVars.hour, XH.tempVars.minute, XH.tempVars.sec = 0, 0, 0, 0;
-	
+
 	XH.tempVars.day = string.format("%i", (secsIn / 86400)) * 1;	-- LUA integer conversion
 	if XH.tempVars.day < 0 then return ""; end
 	secsIn = secsIn - (XH.tempVars.day * 86400);
@@ -411,15 +411,15 @@ XH_SecondsToTime = XH.SecondsToTime;
 function XH.FormatToPattern(formatString)
 
 	local patternString = formatString;
-	
-	patternString = string.gsub(patternString, "%%%d+%$([diouXxfgbcsq])", "%%%1"); -- reordering specifiers (e.g. %2$s) stripped	
+
+	patternString = string.gsub(patternString, "%%%d+%$([diouXxfgbcsq])", "%%%1"); -- reordering specifiers (e.g. %2$s) stripped
 	patternString = string.gsub(patternString, "([%$%(%)%.%[%]%*%+%-%?%^])", "%%%1"); -- convert regex special characters
-	
+
 	patternString = string.gsub(patternString, "%%c", "(.)"); -- %c to (.)
 	patternString = string.gsub(patternString, "%%s", "(.+)"); -- %s to (.+)
 	patternString = string.gsub(patternString, "%%[du]", "(%%d+)"); -- %d to (%d+)
 	patternString = string.gsub(patternString, "%%([gf])", "(%%d+%%.*%%d*)"); -- %g or %f to (%d+%.*%d*)
-		
+
 	return patternString;
 
 end
@@ -437,7 +437,7 @@ function XH.UpdateRested()
 		-- update XH.restedPC to the correct value
 		XH.rested = GetXPExhaustion() or 0;  -- XP till Exhaustion
 		XH.restedPC = (XH.rested / UnitXPMax("player")) * 100;
-		
+
 		--XH.Print(format("Rested @%d: %s (%0.2f%%)",time(),XH.rested, XH.restedPC));
 end
 
@@ -529,8 +529,8 @@ function XH_OnUpdate(arg1)  -- use XH_ since it is referenced outside of this fi
 	end
 	--XH.Text = SecondsToTime(XH.lastUpdate - XH.startedTime, false, false, 5);  -- use the built in function
 	--XH.Text = format("%s (%0.1f)", XH.Text, GetFramerate());
-	
-	
+
+
 	XH.UpdateBars();
 --[[
 	if (XH.mouseOver) then
@@ -602,13 +602,13 @@ function XH.OnPLAYER_REGEN_DISABLED()
 			XH_zoneTracker.bossProgressText = XH.InstanceBossReport( false, true );  -- bosses to go
 			if (XH.instanceAverage[zoneName]) then
 				XH.PartyPrint(format("My Best time: %s. Ave: %s",
-						XH_SecondsToTime(XH.instanceAverage[zoneName].best), 
+						XH_SecondsToTime(XH.instanceAverage[zoneName].best),
 						XH_SecondsToTime(XH.instanceAverage[zoneName].average)));
 			end
 		else
 			XH.Print("Zone '"..zoneName.."' not known");
 			XH_zoneTracker.start = XH.combatStart;
-			XH_zoneTracker.zoneName = zoneName;		
+			XH_zoneTracker.zoneName = zoneName;
 		end
 	end
 end
@@ -698,6 +698,7 @@ function XH.OnUNIT_DIED( unitName, unitGUID )
 	zoneName = GetZoneText();
 	if (IsInInstance()) then
 		local iName, iType, iDiff = GetInstanceInfo();
+		print( iName..":"..iType..":"..iDiff)
 		zoneName = iName;
 		local diff = XH.difficulty[iType][iDiff];
 		zoneName = zoneName ..diff;
@@ -716,7 +717,7 @@ function XH.OnUNIT_DIED( unitName, unitGUID )
 				--XH.Debug("Boss killed");
 				bossReport = true;
 				XH_zoneTracker["bosses"][bossNameTest] = now;
-				if (XH_zoneTracker.bossNameGUID) then 
+				if (XH_zoneTracker.bossNameGUID) then
 					XH_zoneTracker.bossNameGUID[unitGUID]=bossNameTest;
 				else
 					XH_zoneTracker.bossNameGUID={[unitGUID]=bossNameTest};
@@ -729,7 +730,7 @@ function XH.OnUNIT_DIED( unitName, unitGUID )
 			end
 		end
 		if bossName then
-			XH.PartyPrint(format("%s (boss %i of %i) was killed at %s", 
+			XH.PartyPrint(format("%s (boss %i of %i) was killed at %s",
 					bossName, bossCountTotal-bossesLeft, bossCountTotal, XH.SecondsToTime(XH_instanceElapsed)));
 			XH_zoneTracker.bossProgressText = format("(%i of %i)", bossCountTotal-bossesLeft, bossCountTotal);
 		end
@@ -784,7 +785,7 @@ function XH.OnUNIT_DIED( unitName, unitGUID )
 					XH.SecondsToTime(XH.instanceAverage[zoneName].average),
 					XH.SecondsToTime(XH.instanceAverage[zoneName].longest),
 					XH.SecondsToTime(XH.instanceAverage[zoneName].sd)));
-					
+
 				if (XH_instanceElapsed <= XH.instanceAverage[zoneName].best) then
 					XH.Print("We beat my best time of "..XH.SecondsToTime(XH.instanceAverage[zoneName].best));
 				elseif (XH_instanceElapsed <= XH.instanceAverage[zoneName].longest) then
@@ -793,10 +794,10 @@ function XH.OnUNIT_DIED( unitName, unitGUID )
 					XH.Print(string.format("Was %0.1f sd from average.",
 						diffFromAverage / XH.instanceAverage[zoneName].sd));
 				end
-				
+
 				--XH.CurrencyGainReport();
 				-- Print kill records
-				
+
 				--XH_RepReport( XH_zoneTracker.repGain, "Instance Rep Gain" );
 				-- Restore faction reporting
 				-- Moved else where
@@ -829,8 +830,8 @@ function XH.ReportSettings( param )
 	-- set report settings, or report report settings
 	local tf = {COLOR_GREEN.."on"..COLOR_END, COLOR_RED.."off"..COLOR_END};    -- 1 and 2
 
-	if ( param ) then 
-		param = strupper( param ); 
+	if ( param ) then
+		param = strupper( param );
 		XH.Debug("Report Settings ("..param..")");
 		for k,_ in pairs(XH_options.reportTo) do	-- set one on, the others off.
 			if ( k == param ) then
@@ -1015,7 +1016,7 @@ function XH.XPGainEvent( frame, event, message, ... )
 		local _, _, restedstr = string.find(COMBATLOG_XPGAIN_EXHAUSTION1, "%(%%s(.*)%)");
 		restedstr = "%d"..restedstr;
 		--XH.Print(restedstr);
-		XH.RESTED_GAIN_TEXT = XH.FormatToPattern( restedstr );		
+		XH.RESTED_GAIN_TEXT = XH.FormatToPattern( restedstr );
 		--XH.RESTED_GAIN_TEXT = XH.FormatToPattern(COMBATLOG_XPGAIN_EXHAUSTION1);
 	end
 	XH.xpGain = nil;
@@ -1047,7 +1048,7 @@ function XH.XPGainEvent( frame, event, message, ... )
 			gain.lastGained = XH.xpGain;
 			gain.toGo = UnitXPMax("player") - UnitXP("player");  -- this needs to happen for lvling
 			local now = time();
-			
+
 			XH.XPGains[counter].rolling[now] =
 				(XH.XPGains[counter].rolling[now] and XH.XPGains[counter].rolling[now] + XH.xpGain) -- entry exists
 				or XH.xpGain;  -- extry does not exist
@@ -1062,7 +1063,7 @@ function XH.UpdateXPBarText(self)
 	if (XH.gained) and (XH.gained > 0) and (not XH.mouseOver) then
 --		XH.xps, XH.timeToGo = XH.Rate( XH.XPGains.session );
 		--XH.Text = format("%d XP in %s (%0.2f xp/s) %s to go. (%0.1f FPS)",
-		--		XH.XPGains.session.gained, XH.SecondsToTime(time()-XH.XPGains.session.start), 
+		--		XH.XPGains.session.gained, XH.SecondsToTime(time()-XH.XPGains.session.start),
 		--		xps, XH.SecondsToTime(timeToGo), GetFramerate());
 		if (XH.bestTime > time()+XH.timeToGo) or (XH.bestTime < time()) then
 			XH.bestTime = time()+XH.timeToGo;
@@ -1076,7 +1077,7 @@ function XH.UpdateXPBarText(self)
 	else
 		XH.Text = SecondsToTime(XH.lastUpdate - XH.startedTime, false, false, 5);  -- use the built in function
 		if (XH.XPGains.session.gained and XH.XPGains.session.gained > 0) then
-			XH.Text = format("%s xp (%0.2f bubbles) in %s (%0.1f FPS)", 
+			XH.Text = format("%s xp (%0.2f bubbles) in %s (%0.1f FPS)",
 					XH.XPGains.session.gained, (XH.XPGains.session.gained / XH.bubbleSize), XH.Text, GetFramerate());
 		else
 			XH.Text = format("%s (%0.1f FPS)", XH.Text, GetFramerate());
@@ -1188,7 +1189,7 @@ function XH.FactionGainEvent( frame, event, message, ... )
 		_, _, factionName, amount = string.find(message, XH.FACTION_STANDING_INCREASED_PATTERN);
 		amount = tonumber(amount);
 	end
-	
+
 	XH.FactionGain( factionName, amount );
 end
 
@@ -1202,7 +1203,7 @@ function XH.GetFactionInfo( factionNameIn )
 		local barEarnedValue = earnedValue - bottomValue;
 		local standingStr = getglobal("FACTION_STANDING_LABEL"..standingId);
 		if name == factionNameIn then
-			return name, description, standingStr, barBottomValue, barTopValue, barEarnedValue, atWarWith, 
+			return name, description, standingStr, barBottomValue, barTopValue, barEarnedValue, atWarWith,
 					canToggleAtWar, isHeader, isCollapsed, isWatched, factionIndex;
 		end
 	end
@@ -1224,7 +1225,7 @@ function XH.FactionGain( factionNameIn, repGainIn )
 				gain[factionNameIn].lastGained = repGainIn;
 				gain[factionNameIn].toGo = barTopValue - barEarnedValue;
 				local now = time();
-			
+
 				XH.repGains[counter][factionNameIn].rolling[now] =
 						(XH.repGains[counter][factionNameIn].rolling[now] and XH.repGains[counter][factionNameIn].rolling[now] + repGainIn) -- entry exists
 						or repGainIn;  -- extry does not exist
@@ -1233,7 +1234,7 @@ function XH.FactionGain( factionNameIn, repGainIn )
 				XH.repGains[counter][factionNameIn] = XH.InitRate(repGainIn, barTopValue-barEarnedValue);
 			end
 		end
-		
+
 		if not isWatched then
 			SetWatchedFactionIndex(factionIndex);
 		end
@@ -1248,9 +1249,9 @@ function XH.FactionGain( factionNameIn, repGainIn )
 	end
 end
 function XH.InitRate( gainedValue, toGo )
-	return {["gained"] = gainedValue, 
-			["start"] = time(), 
-			["lastGained"] = gainedValue, 
+	return {["gained"] = gainedValue,
+			["start"] = time(),
+			["lastGained"] = gainedValue,
 			["toGo"] = toGo,
 			["rolling"] = {[time()] = gainedValue},
 			};
@@ -1275,20 +1276,20 @@ function XH.Rate2( rateStruct )
 
 			XH.rateByMin[newKey] = (XH.rateByMin[newKey] and XH.rateByMin[newKey] + val) or val;
 			XH.rateMax = max(XH.rateMax, XH.rateByMin[newKey]);
-			
+
 			if ((key+XH.timeRange) <= time()) then
 				--XH.XPGains.session.rolling[key] = nil;
 				rateStruct.rolling[key] = nil;
 				change = true;
 			end
-			
+
 		end
-		if (XH_options.showRateGraphs) and (XH.xpCount > 0) and (XH.xpSum > 0) and (time()%10 == 0) then 
+		if (XH_options.showRateGraphs) and (XH.xpCount > 0) and (XH.xpSum > 0) and (time()%10 == 0) then
 			-- Every 10 seconds if there is +data
 			local strOut = ":";
 			for key=0,((XH.timeRange/60)-1) do
 	--			strOut = strOut .. (XH.rateByMin[key] and '*' or XH.rateGraph[0]);
-				strOut = strOut .. (XH.rateByMin[key] and 
+				strOut = strOut .. (XH.rateByMin[key] and
 						(XH.rateGraph[ceil((XH.rateByMin[key] * 4)/max(XH.rateMax,1))]) or XH.rateGraph[0]);
 				if (key>0) and ((key+1)%5 == 0) then
 					strOut = strOut .. "|";
@@ -1306,8 +1307,8 @@ function XH.Rate2( rateStruct )
 					XH.xpSum,
 					XH.SecondsToTime(time() - XH.mostRecentTS),
 					XH.xpCount,
-					XH.SecondsToTime(XH.mostRecentTS-XH.startTS), 
-					XH.xpSum / (XH.timeRange), 
+					XH.SecondsToTime(XH.mostRecentTS-XH.startTS),
+					XH.xpSum / (XH.timeRange),
 					XH.SecondsToTime( rateStruct.toGo/(XH.xpSum/XH.timeRange) )));
 			--XH.Print(collectgarbage("count"));
 			XH.xpSumOld = XH.xpSum;
@@ -1326,7 +1327,7 @@ end
 function XH.Rate( rateStruct )
 	XH.r = rateStruct.gained / max((time() - rateStruct.start), XH.minRateTime);  -- not using local to avoid garbage collection
 	if rateStruct.toGo then
-		return XH.r, rateStruct.toGo / XH.r;		
+		return XH.r, rateStruct.toGo / XH.r;
 	end
 	return XH.r;
 end
@@ -1334,14 +1335,14 @@ function XH.UpdateRepBarText()
 	if (XH.repProgress) then
 		if XH.GetFactionInfo( XH.repProgress ) then  -- checks first return (name)
 			_, XH.remainingTime = XH.Rate2(XH.repGains.session[XH.repProgress]);
-			
+
 --			if (_>0) and (XH.lastPrinted and (time()>=XH.lastPrinted+30)) or (not XH.lastPrinted) then
 --				XH.Print(format("%s: %0.2fr/s : %s -> %s",
 --					XH.repProgress, _, XH.SecondsToTime(XH.remainingTime),
 --					date(XH.MakeTimeFormat(XH.remainingTime),XH.remainingTime+time())));
 --				XH.lastPrinted = time();
 --			end
-			XH.repStr = format(XH.repStrFmt, XH.SecondsToTime(XH.remainingTime)); 
+			XH.repStr = format(XH.repStrFmt, XH.SecondsToTime(XH.remainingTime));
 			XH_RepText:SetText(XH.repStr);
 		end
 	end
@@ -1403,7 +1404,7 @@ function XH.SendInInstanceReply()
 	if (XH_zoneTracker and XH_zoneTracker.whisperPeople and XH_zoneTracker.finish==0) then
 		XH.Print("Haz ZoneTracker, and not done");
 		local linesOut = {};
-		table.insert(linesOut,format("I'm in %s for the last %s with %s bosses down.", 
+		table.insert(linesOut,format("I'm in %s for the last %s with %s bosses down.",
 				XH_zoneTracker.zoneName, XH.SecondsToTime(time()-XH_zoneTracker.start), XH_zoneTracker.bossProgressText));
 		--table.insert(linesOut,"Line2");
 		for name, val in pairs(XH_zoneTracker.whisperPeople) do
