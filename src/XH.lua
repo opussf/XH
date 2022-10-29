@@ -1,4 +1,4 @@
-''XH_MSG_VERSION = GetAddOnMetadata("XH","Version");
+XH_MSG_VERSION = GetAddOnMetadata("XH","Version");
 
 -- Colours
 COLOR_RED = "|cffff0000";
@@ -33,7 +33,7 @@ XH = {};
 XH.rateGraph={[0]="_",[1]=".",[2]="·",[3]="-",[4]="^"};
 XH.rateGraph={[0]="_",[1]="░",[2]="▒",[3]="▓",[4]="█"};
 
-XH.maxLevel = 90;
+XH.maxLevel = 120;
 XH.tempVars = {};
 XH.lastUpdate = 0;
 XH.bestTime = 0;
@@ -43,6 +43,7 @@ XH.restedPC = 0;  -- 0 - 150%  Used to update the rested bar
 XH.difficulty = {["party"] = {""," - Heroic"," - Epic"},
 		["raid"] = {"", " - 25 Man", " - 10 Man Heroic", " - 25 Man Heroic"},
 		["pvp"] = {"","","",""},
+		["scenario"] = {"scenario","","","","","",""}
 };
 
 -- Instance Tracker
@@ -558,12 +559,13 @@ function XH.PlayerEnteringWorld()
 	XH.UpdateRested();
 	local inInstance, instanceType = IsInInstance();  -- 1nil, string( arena, none, party, pvp, raid)
 	if (inInstance) then
-		XH.Print(inInstance..":"..instanceType);
-		local iName, iType, iDiff = GetInstanceInfo();
+		local iName, iType, iDiff, _, _, _, _, instanceID = GetInstanceInfo();
+		XH.Print((inInstance and "true" or "nil")..":"..(instanceType or "unknown instanceType").." mapID:"..(instanceID or "nil mapID"))
+
 		if iType and iDiff then
 			XH.Print("Welcome to: "..iName.." ("..iType..":"..iDiff..")");
 		end
-		XH.inDungeon = 1;
+		XH.inDungeon = nil;
 		XH.leftDungeon = nil;
 	else
 		--XH.Print("Leaving Dungeon");
@@ -698,10 +700,10 @@ function XH.OnUNIT_DIED( unitName, unitGUID )
 	zoneName = GetZoneText();
 	if (IsInInstance()) then
 		local iName, iType, iDiff = GetInstanceInfo();
-		print( iName..":"..iType..":"..iDiff)
 		zoneName = iName;
 		local diff = XH.difficulty[iType][iDiff];
-		zoneName = zoneName ..diff;
+		zoneName = zoneName .. (diff or (" iType: "..iType.." iDiff: "..iDiff) )
+		print(zoneName)
 	end
 	now = time();
 	bossesLeft = 0; bossCountTotal = 0; bossName = nil;

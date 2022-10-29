@@ -1,6 +1,6 @@
-## Interface: @INTERFACE@
 ## Title: XH
-## Notes: XP/hour and time to lvl tracker.  Includes a dungeon timer.
+## Interface: @INTERFACE@
+## Notes: XP/hour and time to lvl tracker.  Includes a dungeon timer. (@VERSION@)
 ## Author: sistersally of hyjal
 ## Version: @VERSION@
 ## Description: Slash command function to output XP/Hour
