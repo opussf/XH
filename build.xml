@@ -67,6 +67,16 @@
 	<filter token="VERSION" value="${version.number}"/>
 	<filter token="INTERFACE" value="${INTERFACE}"/>
 
+	<patternset id="packageFiles">
+		<include name="src/*.xml"/>
+		<include name="src/*.toc"/>
+		<include name="src/*.lua"/>
+		<include name="src/Readme.txt"/>
+		<include name="src/HowTo.md"/>
+		<include name="${working.dir}/*.txt"/>
+	</patternset>
+
+<!-- -->
 	<target name="clean" description="Cleans old builds">
 		<delete dir="target" verbose="true"/>
 	</target>
@@ -83,15 +93,9 @@
 	<target name="package" depends="changelog, test" description="Create a deploy package">
 		<property name="package.dir" location="${working.dir}/${ant.project.name}"/>
 		<delete dir="${package.dir}" verbose="false"/>
-		<copy	todir="${package.dir}" filtering="true">
-			<fileset dir="src">
-				<include name="*.lua"/>
-				<include name="*.toc"/>
-				<include name="*.xml"/>
-				<include name="*.txt"/>
-			</fileset>
-			<fileset dir="${working.dir}">
-				<include name="*.txt"/>
+		<copy	todir="${package.dir}" filtering="true" flatten="true">
+			<fileset dir=".">
+				<patternset refid="packageFiles"/>
 			</fileset>
 		</copy>
 		<zip 	destfile="${target.dir}/${project.zip}"
@@ -119,15 +123,16 @@
 		<delete>
 			<fileset dir="${addon.dir}" includes="*.toc"/>
 		</delete>
-		<copy todir="${addon.dir}" filtering="true">
+		<copy todir="${addon.dir}" filtering="true" verbose="true">
 			<fileset dir="src">
 				<include name="*.lua"/>
 				<include name="*.toc"/>
 				<include name="*.xml"/>
 				<include name="Readme.txt"/>
+				<include name="HowTo.md"/>
 			</fileset>
 		</copy>
-		<chmod perm="ugo+x" dir="${addon.dir}" includes="INEED_Export.lua" />
+		<echo>Deployed ${version.number} locally</echo>
 	</target>
 
 	<target name="open" description="open the addon dir in the current wow install">
@@ -151,8 +156,8 @@
 		</fail>
 	</target>
 
-	<target name="curse" depends="package">
-		<property name="curse.dir" location="INeed-cf"/>
+	<target name="curse" depends="package" description="Copy files to the local curseforge path">
+		<property name="curse.dir" location="${ant.project.name}-cf"/>
 		<copy todir="${curse.dir}">
 			<fileset dir="${package.dir}"/>
 		</copy>
