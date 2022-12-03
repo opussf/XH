@@ -5,7 +5,7 @@
 ## Version: @VERSION@
 ## Description: Slash command function to output XP/Hour
 ## SavedVariables: XH_options XH_instanceBestTimes XH_bosses
-## SavedVariablesPerCharacter: XH_instanceTimes XH_playedByLevel XH_zoneTracker XH_bubbleReport
+## SavedVariablesPerCharacter: XH_instanceTimes XH_playedByLevel XH_zoneTracker XH_bubbleReport XH_XPGains
 localization.lua
 localization.fr.lua
 

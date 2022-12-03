@@ -70,7 +70,7 @@ XH.timeRange = 30*60;
 --XH.timeRange = 5*60;
 
 -- XP gains
-XH.XPGains = {
+XH_XPGains = {
 		["session"] = {},
 		["instance"] = {},
 		["combat"] = {},
@@ -157,12 +157,12 @@ function XH.ADDON_LOADED()
 	XHInstanceList:Hide();
 	XH.UpdateRested();
 	XH.UpdateBars();
-	XH.XPGains.session = XH.InitRate(0, UnitXPMax("player") - UnitXP("player"));
+	XH_XPGains.session = XH.InitRate(0, UnitXPMax("player") - UnitXP("player"));
 	XH.bubbleSize = UnitXPMax("player") / 20;
 
 	now = time();
 --	for x=(now-(XH.timeRange)*60), (now+500) do
---		XH.XPGains.session.rolling[x] = 1;
+--		XH_XPGains.session.rolling[x] = 1;
 --	end
 
 end
@@ -1045,28 +1045,28 @@ function XH.XPGainEvent( frame, event, message, ... )
 --		XH.Print(xpType..":"..bonusXP);
 --	end
 	--XH.Print(XH.EXP_GAIN_TEXT..":"..XH.RESTED_GAIN_TEXT);
-	for counter, gain in pairs(XH.XPGains) do
+	for counter, gain in pairs(XH_XPGains) do
 		if (gain.gained) then
 			gain.gained = gain.gained + XH.xpGain;
 			gain.lastGained = XH.xpGain;
 			gain.toGo = UnitXPMax("player") - UnitXP("player");  -- this needs to happen for lvling
 			local now = time();
 
-			XH.XPGains[counter].rolling[now] =
-				(XH.XPGains[counter].rolling[now] and XH.XPGains[counter].rolling[now] + XH.xpGain) -- entry exists
+			XH_XPGains[counter].rolling[now] =
+				(XH_XPGains[counter].rolling[now] and XH_XPGains[counter].rolling[now] + XH.xpGain) -- entry exists
 				or XH.xpGain;  -- extry does not exist
 		else  -- odd.  Cannot do gain={}.  seems to fail
-			XH.XPGains[counter] = XH.InitRate(xpGain, UnitXPMax("player") - UnitXP("player"));
+			XH_XPGains[counter] = XH.InitRate(xpGain, UnitXPMax("player") - UnitXP("player"));
 		end
 	end
 end
 function XH.UpdateXPBarText(self)
-	XH.xps, XH.timeToGo, XH.gained = XH.Rate2( XH.XPGains.session );
+	XH.xps, XH.timeToGo, XH.gained = XH.Rate2( XH_XPGains.session );
 
 	if (XH.gained) and (XH.gained > 0) and (not XH.mouseOver) then
---		XH.xps, XH.timeToGo = XH.Rate( XH.XPGains.session );
+--		XH.xps, XH.timeToGo = XH.Rate( XH_XPGains.session );
 		--XH.Text = format("%d XP in %s (%0.2f xp/s) %s to go. (%0.1f FPS)",
-		--		XH.XPGains.session.gained, XH.SecondsToTime(time()-XH.XPGains.session.start),
+		--		XH_XPGains.session.gained, XH.SecondsToTime(time()-XH_XPGains.session.start),
 		--		xps, XH.SecondsToTime(timeToGo), GetFramerate());
 		if (XH.bestTime > time()+XH.timeToGo) or (XH.bestTime < time()) then
 			XH.bestTime = time()+XH.timeToGo;
@@ -1079,9 +1079,9 @@ function XH.UpdateXPBarText(self)
 				XH.xps);
 	else
 		XH.Text = SecondsToTime(XH.lastUpdate - XH.startedTime, false, false, 5);  -- use the built in function
-		if (XH.XPGains.session.gained and XH.XPGains.session.gained > 0) then
+		if (XH_XPGains.session.gained and XH_XPGains.session.gained > 0) then
 			XH.Text = format("%s xp (%0.2f bubbles) in %s (%0.1f FPS)",
-					XH.XPGains.session.gained, (XH.XPGains.session.gained / XH.bubbleSize), XH.Text, GetFramerate());
+					XH_XPGains.session.gained, (XH_XPGains.session.gained / XH.bubbleSize), XH.Text, GetFramerate());
 		else
 			XH.Text = format("%s (%0.1f FPS)", XH.Text, GetFramerate());
 		end
@@ -1281,7 +1281,7 @@ function XH.Rate2( rateStruct )
 			XH.rateMax = max(XH.rateMax, XH.rateByMin[newKey]);
 
 			if ((key+XH.timeRange) <= time()) then
-				--XH.XPGains.session.rolling[key] = nil;
+				--XH_XPGains.session.rolling[key] = nil;
 				rateStruct.rolling[key] = nil;
 				change = true;
 			end
@@ -1305,7 +1305,7 @@ function XH.Rate2( rateStruct )
 --		if (XH.xpSum > 0) and (not XH.xpSumOld or XH.xpSum ~= XH.xpSumOld) then
 		if false and change then
 			--local rate = XH.xpSum / (XH.mostRecentTS-XH.startTS);
-			--local timeRemain = XH.XPGains.session.toGo / rate;
+			--local timeRemain = XH_XPGains.session.toGo / rate;
 			XH.Print(string.format("%d in (%s -%i- %s) %0.2f /sec %s",
 					XH.xpSum,
 					XH.SecondsToTime(time() - XH.mostRecentTS),
