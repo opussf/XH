@@ -9,6 +9,6 @@
 localization.lua
 localization.fr.lua
 
-XH_data.lua
 XH.lua
+XH_options.lua
 XH.xml

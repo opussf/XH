@@ -1,4 +1,7 @@
-XH_MSG_VERSION = GetAddOnMetadata("XH","Version");
+XH_SLUG, XH = ...
+XH_MSG_ADDONNAME = GetAddOnMetadata( XH_SLUG, "Title" )
+XH_MSG_AUTHOR    = GetAddOnMetadata( XH_SLUG, "Author" )
+XH_MSG_VERSION   = GetAddOnMetadata( XH_SLUG, "Version" )
 
 -- Colours
 COLOR_RED = "|cffff0000";
@@ -13,11 +16,6 @@ COLOR_NEON_BLUE = "|cff4d4dff";
 COLOR_END = "|r";
 
 -- options
-XH_options = {
-	["reportTo"] = {["GUILD"] = false,	["PARTY"] = false,},
-	["showSkill"] = 180,
-	["showRateGraphs"] = true,
-}
 
 XH_bubbleReport = {
 	[5] = false,
@@ -29,7 +27,7 @@ XH_bubbleReport = {
 XH_playedByLevel = {};
 XH_bosses = {};
 
-XH = {};
+--XH = {};
 XH.rateGraph={[0]="_",[1]=".",[2]="·",[3]="-",[4]="^"};
 XH.rateGraph={[0]="_",[1]="░",[2]="▒",[3]="▓",[4]="█"};
 
