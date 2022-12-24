@@ -4,28 +4,19 @@ XH_MSG_AUTHOR    = GetAddOnMetadata( XH_SLUG, "Author" )
 XH_MSG_VERSION   = GetAddOnMetadata( XH_SLUG, "Version" )
 
 -- Colours
-COLOR_RED = "|cffff0000";
-COLOR_GREEN = "|cff00ff00";
-COLOR_BLUE = "|cff0000ff";
-COLOR_PURPLE = "|cff700090";
-COLOR_YELLOW = "|cffffff00";
-COLOR_ORANGE = "|cffff6d00";
-COLOR_GREY = "|cff808080";
-COLOR_GOLD = "|cffcfb52b";
-COLOR_NEON_BLUE = "|cff4d4dff";
-COLOR_END = "|r";
+COLOR_RED = "|cffff0000"
+COLOR_GREEN = "|cff00ff00"
+COLOR_BLUE = "|cff0000ff"
+COLOR_PURPLE = "|cff700090"
+COLOR_YELLOW = "|cffffff00"
+COLOR_ORANGE = "|cffff6d00"
+COLOR_GREY = "|cff808080"
+COLOR_GOLD = "|cffcfb52b"
+COLOR_NEON_BLUE = "|cff4d4dff"
+COLOR_END = "|r"
 
 -- options
-
-XH_bubbleReport = {
-	[5] = false,
-	[10] = false,
-	[15] = false,
-	[18] = false,
-	[19] = false,
-}
 XH_playedByLevel = {};
-XH_bosses = {};
 
 --XH = {};
 XH.rateGraph={[0]="_",[1]=".",[2]="·",[3]="-",[4]="^"};
@@ -94,12 +85,14 @@ XH.currencyGains = {
 --XH.startNode = nil;
 
 -- onload event handler
-function XH_OnLoad()
+function XH.OnLoad()
 	--register slash commands
 	SLASH_XH1 = "/xh";
 	SlashCmdList["XH"] = function(msg) XH.Command(msg); end
 
-	XHFrame:RegisterEvent("ADDON_LOADED");
+	XHFrame:RegisterEvent("VARIABLES_LOADED")
+	XHFrame:RegisterEvent("PLAYER_XP_UPDATE")
+
 
 	--ChatFrame_AddMessageEventFilter("CHAT_MSG_COMBAT_FACTION_CHANGE", XH.FactionGainEvent);
 	ChatFrame_AddMessageEventFilter("CHAT_MSG_COMBAT_XP_GAIN", XH.XPGainEvent);
@@ -478,7 +471,6 @@ XH.eventHandlers = {
 	["PLAYER_LEVEL_UP"] = function(event, ...)
 		XH.ding = select(1, ...);
 		XH.XPGainEvent();
-		XH.ResetBubbleReport();
 		XH.bestTime = 0;
 		XH.lastUpdate = XH.lastUpdate + 5;
 		RequestTimePlayed();  -- fires off /played
@@ -522,7 +514,7 @@ function XH_OnUpdate(arg1)  -- use XH_ since it is referenced outside of this fi
 		return;
 	end
 	XH.lastUpdate = time();
-	XH.BubbleReport();
+
 	if (XH.doCurrencyReport) then
 		XH.CurrencyGainReport();
 		XH.doCurrencyReport = nil;
@@ -668,32 +660,6 @@ function XH.InstanceAverages()
 		end
 		--XH.Print(zone.." m:".. m.." +- "..XH.instanceAverage[zone].sd);
 	end
-end
-function XH.InstanceBossReport( completed, togo )
-	-- output one or 2 lines of:
-	-- "Completed: 'bosslist'"
-	-- "'bossCount' to go: 'bossList'"
-	-- return "(Killed of total)"
-	local deadBosses, aliveBosses, aliveBossCount, bossCount = "", "", 0, 0;
-	if not XH_zoneTracker.bosses then
-		return;
-	end
-	for boss,time in pairs( XH_zoneTracker.bosses) do
-		if time>0 then
-			deadBosses = deadBosses .. boss .. ", ";
-		else
-			aliveBosses = aliveBosses .. boss .. ", ";
-			aliveBossCount = aliveBossCount + 1;
-		end
-		bossCount = bossCount + 1;
-	end
-	if (completed) and (strlen(deadBosses) > 0) then
-		XH.PartyPrint("Completed: "..deadBosses);
-	end
-	if (togo ~= nil) and (togo == true) and (strlen(aliveBosses) > 0) then
-		XH.PartyPrint(aliveBossCount.." to go: "..aliveBosses);
-	end
-	return format("(%i of %i)", bossCount-aliveBossCount, bossCount);
 end
 function XH.OnUNIT_DIED( unitName, unitGUID )
 	zoneName = GetZoneText();
@@ -854,113 +820,6 @@ function XH.ReportSettings( param )
 
 	XH.Debug("End Report Settings");
 end
-function XH.InstanceReport( instanceSearch )
-	-- reports InstanceData
-	-- instanceSearch will be a text to search on
-	XH.Print("InstanceReport - "..instanceSearch);
-	local searchTxt = "No Instance";
-	if (instanceSearch ~= nil) and (instanceSearch ~= "") then    -- report on specific instance
-		searchTxt = instanceSearch;
-		--XH.Print("Search given");
-	elseif (XH_zoneTracker.zoneName ~= nil) then    -- otherwise, if an instance is given, report on it.
-		searchTxt = XH_zoneTracker.zoneName;
-		--XH.Print("Use ZoneTracker Zone")
-	end
-	searchTxt = strupper( searchTxt );
-	--XH.Print(">"..searchTxt.."<");
-	for zone,values in pairs( XH.instanceAverage ) do
-		-- strOut = zone.." run "..values.count.." times. My best time: "..SecondsToTime( values.best ).." Average time: "..SecondsToTime( values.average ).. " +- "..SecondsToTime( values.sd );
-		-- XH.Print( strOut );
-		--strOut = format("%s: My best: %s. Average: %s (sd: %s). Longest: %s",
-		strOut = format("%s: Best/Ave(sd)/Longest %s/%s(%s)/%s",
-				zone, XH.SecondsToTime( values.best ), XH.SecondsToTime( values.average ), XH.SecondsToTime( values.sd ),
-				XH.SecondsToTime( values.longest ));
-		--XH.Print( strOut );
-		--if (XH_zoneTracker.zoneName ~= nil) and (XH_zoneTracker.zoneName == zone) then
-		if (string.find( strupper(zone), searchTxt ) ~= nil) then    -- print to party if found
-			XH.PartyPrint( strOut );
-		end
-	end
-	if ( instanceSearch ~= "" ) then -- don't want to report any more if doing a search
-		return;
-	end
-
-	if (XH_zoneTracker.zoneName ~= nil) then
-		if XH_zoneTracker.finish > 0 then
-			elapsed = XH_zoneTracker.finish - XH_zoneTracker.start;
-		else
-			elapsed = time() - XH_zoneTracker.start;
-		end
-		--XH_Print("Current Instance: "..XH_zoneTracker.zoneName.." - "..SecondsToTime(elapsed));
-		XH.PartyPrint("Current elapsed time: "..XH_SecondsToTime(elapsed));
-		XH.InstanceBossReport( true, true );    -- completed, and togo
-		if XH_zoneTracker.finish>0 then
-			elapsed = XH_zoneTracker.finish - XH_zoneTracker.start;
-			XH.Print("Finished in "..XH_SecondsToTime(elapsed));
-		end
-	end
-	--XH_RepReport( XH_zoneTracker.repGain, "Instance Rep Gain" );
-	if XH_zoneTracker.xpGain ~= nil and XH_zoneTracker.xpGain > 0 then
-		XH.Print(XH_zoneTracker.xpGain.." xp gained.");
-	end
-end
-function XH.InstanceList( instanceSearch )
-	XH.Print("InstanceList - "..instanceSearch);
-	local searchTxt = ".";
-	local printData = false;
-	if (instanceSearch ~= nil) and (instanceSearch ~= "") then    -- report on specific instance
-		searchTxt = instanceSearch;
-		printData = true;
-	end
-	searchTxt = strupper( searchTxt );
-	local runCount = 0
-	for zone,values in pairs( XH_instanceTimes ) do
-		runCount = tableLen( values );
-		if (string.find( strupper(zone), searchTxt ) ~= nil) then
-			XH.Print(zone..": runs: "..runCount, false );
-			if (printData == true) then
-				table.sort(values);
-				for start,data in pairs( values ) do
-					XH.Print("   "..start.." ran for "..SecondsToTime( data["finish"] - start ), false );
-				end
-				XH.Print("Best: "..SecondsToTime( XH.instanceAverage[zone].best )..
-						 " -- Longest: " .. SecondsToTime( XH.instanceAverage[zone].longest ), false );
-				XH.Print("Ave: "..SecondsToTime( XH.instanceAverage[zone].average )..
-						 " (sd: "..SecondsToTime( XH.instanceAverage[zone].sd )..")", false );
-				XH.Print("==========",false);
-			end
-		end
-	end
-	if ( instanceSearch ~= "" ) then -- don't want to report any more if doing a search
-		return;
-	end
-end
-function XH.RemoveInstanceRunByTimeStamp( timestamp )
-	if timestamp == "" then
-		return;
-	end
-	timestamp = timestamp * 1;  -- timestamp comes in as a string.  need to convert to integer.
-	--XH_Print("Removing instance starting at: "..timestamp);
-	local recalc = false;
-	for zone,values in pairs( XH_instanceTimes ) do
-		for start, data in pairs( values ) do
-			if start == timestamp then
-				XH.Print("Deleting instance info for: "..zone.." starting at: "..start);
-				XH_instanceTimes[zone][start] = nil;
-				recalc = zone;
-			end
-		end
-	end
-	if recalc then
-		XH.InstanceAverages();
-		XH.Print("Best: "..SecondsToTime( XH.instanceAverage[recalc].best )..
-				 " -- Longest: " .. SecondsToTime( XH.instanceAverage[recalc].longest ), false );
-		XH.Print("Ave: "..SecondsToTime( XH.instanceAverage[recalc].average )..
-				 " (sd: "..SecondsToTime( XH.instanceAverage[recalc].sd )..")", false );
-	else
-		XH.Print("No timestamp match found");
-	end
-end
 
 -- Currency Code
 function XH.LootGainEvent( frame, event, message, ...)
@@ -1099,39 +958,6 @@ function XH.UpdateXPBarText(self)
 	end
 	]]--
 end
-function XH.BubbleReport()
-	if (UnitLevel("player") < XH.maxLevel) then
-		-- report to the party that you have passed a bubble milestone
-		XH.bubbleSize = UnitXPMax("player") / 20;
-		XH.bubblesDone = UnitXP("player") / XH.bubbleSize;
-		--XH.Print(format("%0.2f x %d", XH.bubblesDone, XH.bubbleSize));
-		for b,done in pairs(XH_bubbleReport) do
-			if (b <= XH.bubblesDone) and (not done) then
-				local fmt = "Halfway through this level.";
-				if (b<10) then
-					fmt = format("%d bubble%%s done.", b);
-				elseif (b>10) then
-					fmt = format("%d bubble%%s to go.", 20-b);
-				end
-				if (b>1) and (b<19) and (b~=10) then
-					fmt = format(fmt, "s");
-				else
-					fmt = format(fmt, "");
-				end
-
-				XH.PartyPrint(fmt);
-				XH_bubbleReport[b] = time();
-			end
-		end
-	end
-end
-function XH.ResetBubbleReport()
-	-- reset the values
-	XH.Print("Reseting Bubble Report");
-	for bubble in pairs(XH_bubbleReport) do
-		XH_bubbleReport[bubble] = false;
-	end
-end
 
 -- Skill code
 function XH.OnSkill( arg1 )
@@ -1174,81 +1000,7 @@ function XH.OnSkill( arg1 )
 	end
 end
 
--- Faction code
-function XH.FactionGainEvent( frame, event, message, ... )
-	--XH.Print(event..":"..message);
-	if (not XH.FACTION_STANDING_DECREASED_PATTERN) then
-		XH.FACTION_STANDING_DECREASED_PATTERN = XH.FormatToPattern(FACTION_STANDING_DECREASED);
-	end
-	local _, _, factionName, amount = string.find(message, XH.FACTION_STANDING_DECREASED_PATTERN);
-	if (factionName) then
-		amount = -amount;
-	else
-		if (not XH.FACTION_STANDING_INCREASED_PATTERN) then
-			XH.FACTION_STANDING_INCREASED_PATTERN = XH.FormatToPattern(FACTION_STANDING_INCREASED);
-		end
-		_, _, factionName, amount = string.find(message, XH.FACTION_STANDING_INCREASED_PATTERN);
-		amount = tonumber(amount);
-	end
 
-	XH.FactionGain( factionName, amount );
-end
-
--- return a list of faction info
-function XH.GetFactionInfo( factionNameIn )
-	for factionIndex = 1, GetNumFactions() do
-		local name, description, standingId, bottomValue, topValue, earnedValue, atWarWith,
-				canToggleAtWar, isHeader, isCollapsed, isWatched = GetFactionInfo(factionIndex);
-		local barBottomValue = 0;
-		local barTopValue = topValue - bottomValue;
-		local barEarnedValue = earnedValue - bottomValue;
-		local standingStr = getglobal("FACTION_STANDING_LABEL"..standingId);
-		if name == factionNameIn then
-			return name, description, standingStr, barBottomValue, barTopValue, barEarnedValue, atWarWith,
-					canToggleAtWar, isHeader, isCollapsed, isWatched, factionIndex;
-		end
-	end
-	if not name then
-		XH.Print("No faction found that matches: "..factionNameIn);
-		CollapseAllFactionHeaders();
-		ExpandAllFactionHeaders();
-	end
-end
-function XH.FactionGain( factionNameIn, repGainIn )
-	--XH.GetFactionInfo( factionNameIn );
-	local name, description, standingStr, barBottomValue, barTopValue, barEarnedValue, atWarWith,
-			canToggleAtWar, isHeader, isCollapsed, isWatched, factionIndex = XH.GetFactionInfo( factionNameIn );
-	if name then
-		for counter, gain in pairs(XH.repGains) do
-			--XH.Print("Counter: "..counter);
-			if (gain[factionNameIn]) then
-				gain[factionNameIn].gained = gain[factionNameIn].gained + repGainIn;
-				gain[factionNameIn].lastGained = repGainIn;
-				gain[factionNameIn].toGo = barTopValue - barEarnedValue;
-				local now = time();
-
-				XH.repGains[counter][factionNameIn].rolling[now] =
-						(XH.repGains[counter][factionNameIn].rolling[now] and XH.repGains[counter][factionNameIn].rolling[now] + repGainIn) -- entry exists
-						or repGainIn;  -- extry does not exist
-			else
-				XH.Print(factionNameIn..":"..barTopValue-barEarnedValue);
-				XH.repGains[counter][factionNameIn] = XH.InitRate(repGainIn, barTopValue-barEarnedValue);
-			end
-		end
-
-		if not isWatched then
-			SetWatchedFactionIndex(factionIndex);
-		end
-
-		-- format report string
-		XH.repStrFmt = format("%s (%s) : %d (%d) -> %d (%%s)",
-				name, standingStr, repGainIn, XH.repGains.session[factionNameIn].gained, barTopValue - barEarnedValue );
-		XH.repProgress = factionNameIn;
-		XH_RepBar:SetMinMaxValues(barBottomValue, barTopValue);
-		XH_RepBar:SetValue(barEarnedValue);
-		XH.UpdateRepBarText();
-	end
-end
 function XH.InitRate( gainedValue, toGo )
 	return {["gained"] = gainedValue,
 			["start"] = time(),
@@ -1348,82 +1100,7 @@ function XH.UpdateRepBarText()
 		end
 	end
 end
-function XH.RepReport( repTable, title, chatType )
-	-- set a table to report from
-	if not XH.FACTION_STANDING_INCREASED then
-		XH.FACTION_STANDING_INCREASED = FACTION_STANDING_INCREASED .. " %s %d / %d (%0.2f%%)";
-	end
-	if not XH.FACTION_STANDING_DECREASED then
-		XH.FACTION_STANDING_DECREASED = FACTION_STANDING_DECREASED .. " %s %d / %d (%0.2f%%)";
-	end
-	if repTable then
-		if title then XH.Print( title ); end
-		for fac, rateStruct in pairs( repTable ) do
-			rep = rateStruct.gained;
-			if rep then
-				fmt = XH.FACTION_STANDING_INCREASED;
-				if (rep<0) then fmt = XH.FACTION_STANDING_DECREASED; end
-				local name, description, standingStr, barBottomValue, barTopValue, barEarnedValue, atWarWith,
-						canToggleAtWar, isHeader, isCollapsed, isWatched, factionIndex = XH.GetFactionInfo( fac );
-				if name then
-					lineOut = format(fmt, fac, abs(rep), standingStr, barEarnedValue, barTopValue, (barEarnedValue/barTopValue)*100);
-					if strlen(chatType)>0 then
-						SendChatMessage(lineOut, chatType, nil);
-					else
-						XH.Print(lineOut, false);    -- supress addon message
-					end
-				end
-			end
-		end
-	end
-end
 
--- Instance whispers
-function XH.GetWhisper( frame, event, message, ...)
-	whoFrom = select(1, ...);
-	--if (XH.name == whoFrom) then
-	if (XH.name == whoFrom or not (UnitInParty(whoFrom) or UnitInRaid(whoFrom))) then
-		if (XH_zoneTracker) then
-			if (XH_zoneTracker.whisperPeople) then
-				if (not XH_zoneTracker.whisperPeople[whoFrom]) then  -- Not had a whisper from
-					XH_zoneTracker.whisperPeople[whoFrom] = 2;
-				end
-			else
-				XH_zoneTracker.whisperPeople = {[whoFrom]=2};
-			end
---[[
-			for name, i in pairs(XH_zoneTracker.whisperPeople) do
-				XH.Print(format("%s: %s", i, name));
-			end
-]]--
-		end
-		XH.SendInInstanceReply();
-	end
-end
-function XH.SendInInstanceReply()
-	XH.Print("SendInInstanceReply");
-	if (XH_zoneTracker and XH_zoneTracker.whisperPeople and XH_zoneTracker.finish==0) then
-		XH.Print("Haz ZoneTracker, and not done");
-		local linesOut = {};
-		table.insert(linesOut,format("I'm in %s for the last %s with %s bosses down.",
-				XH_zoneTracker.zoneName, XH.SecondsToTime(time()-XH_zoneTracker.start), XH_zoneTracker.bossProgressText));
-		--table.insert(linesOut,"Line2");
-		for name, val in pairs(XH_zoneTracker.whisperPeople) do
-			if (val==2) then
-				XH_zoneTracker.whisperPeople[name] = 0;
-				for i,lineOut in ipairs(linesOut) do
-					SendChatMessage(lineOut, "WHISPER", nil, name);
-				end
-			end
-		end
-	end
-end
-function XH.SendInstanceUpdates(msg)
-	XH.Print("SendInstanceUpdates: "..msg);
-	for name, val in pairs(XH_zoneTracker.whisperPeople) do
-		XH_zoneTracker.whisperPeople[name] = 1;
-	end
-end
 function XH.Test()
 	if (XHInstanceList:IsVisible()) then
 		XHInstanceList:Hide();

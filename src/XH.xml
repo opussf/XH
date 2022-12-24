@@ -232,20 +232,22 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 		</Frames>
 		<Scripts>
 			<OnLoad>
-				XH_OnLoad();
+				XH.OnLoad()
 			</OnLoad>
+			<OnUpdate>
+				XH.OnUpdate( elapsed )
+			</OnUpdate>
+			<OnEvent>
+				XH[event]( ... )
+			</OnEvent>
+
 			<OnMouseDown>
 				XH_OnDragStart();
 			</OnMouseDown>
 			<OnMouseUp>
 				XH_OnDragStop();
 			</OnMouseUp>
-			<OnUpdate>
-				XH_OnUpdate(arg1);
-			</OnUpdate>
-			<OnEvent>
-				XH_OnEvent(event, ...);
-			</OnEvent>
+
 			<OnEnter>
 				XH_OnEnter();
 			</OnEnter>
