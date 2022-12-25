@@ -402,19 +402,17 @@ XH_SecondsToTime = XH.SecondsToTime;
 -- Converts string.format to a string.find pattern: "%s hits %s for %d." to "(.+) hits (.+) for (%d+)"
 -- based on Recap by Gello
 function XH.FormatToPattern(formatString)
+	local patternString = formatString
 
-	local patternString = formatString;
+	patternString = string.gsub(patternString, "%%%d+%$([diouXxfgbcsq])", "%%%1") -- reordering specifiers (e.g. %2$s) stripped
+	patternString = string.gsub(patternString, "([%$%(%)%.%[%]%*%+%-%?%^])", "%%%1") -- convert regex special characters
 
-	patternString = string.gsub(patternString, "%%%d+%$([diouXxfgbcsq])", "%%%1"); -- reordering specifiers (e.g. %2$s) stripped
-	patternString = string.gsub(patternString, "([%$%(%)%.%[%]%*%+%-%?%^])", "%%%1"); -- convert regex special characters
+	patternString = string.gsub(patternString, "%%c", "(.)") -- %c to (.)
+	patternString = string.gsub(patternString, "%%s", "(.+)") -- %s to (.+)
+	patternString = string.gsub(patternString, "%%[du]", "(%%d+)") -- %d to (%d+)
+	patternString = string.gsub(patternString, "%%([gf])", "(%%d+%%.*%%d*)") -- %g or %f to (%d+%.*%d*)
 
-	patternString = string.gsub(patternString, "%%c", "(.)"); -- %c to (.)
-	patternString = string.gsub(patternString, "%%s", "(.+)"); -- %s to (.+)
-	patternString = string.gsub(patternString, "%%[du]", "(%%d+)"); -- %d to (%d+)
-	patternString = string.gsub(patternString, "%%([gf])", "(%%d+%%.*%%d*)"); -- %g or %f to (%d+%.*%d*)
-
-	return patternString;
-
+	return patternString
 end
 function XH.ParseCmd(msg)
 	if msg then

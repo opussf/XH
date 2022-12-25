@@ -4,9 +4,10 @@
 ## Author: sistersally of hyjal
 ## Version: @VERSION@
 ## Description: Slash command function to output XP/Hour
-## SavedVariables: XH_options XH_instanceBestTimes XH_bosses
-## SavedVariablesPerCharacter: XH_instanceTimes XH_playedByLevel XH_zoneTracker XH_bubbleReport XH_XPGains
+## SavedVariables: XH_options XH_XPGains
+## SavedVariablesPerCharacter: XH_playedByLevel
 
 XH.lua
+XHUI.lua
 XH_options.lua
 XH.xml
