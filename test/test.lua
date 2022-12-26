@@ -138,5 +138,101 @@ function test.test_VARIABLES_LOADED_OtherData_pruneOld()
 	XH.VARIABLES_LOADED()
 	assertIsNil( XH_Gains["otherRealm-otherPlayer"] )
 end
+function test.test_VARIABLES_LOADED_Sets_Rested()
+	XH.VARIABLES_LOADED()
+	assertEquals( 3618, XH.rested )
+end
+function test.test_VARIABLES_LOADED_Sets_RestedPC()
+	XH.VARIABLES_LOADED()
+	assertEquals( 361.8, XH.restedPC )
+end
+function test.test_VARIABLES_LOADED_Sets_Xpnow()
+	XH.VARIABLES_LOADED()
+	assertEquals( 100, XH.xpNow )
+end
+function test.test_XPGainEvent_sets_EXP_GAIN_TEXT()
+	XH.VARIABLES_LOADED()
+	XH.XPGainEvent( "Frame", "Event", "Steve dies, you gain 2400 experience." )
+	assertEquals( "(.+) dies, you gain (%d+) experience%.", XH.EXP_GAIN_TEXT )
+end
+function test.test_XPGainEvent_sets_RESTED_GAIN_TEXT()
+	XH.VARIABLES_LOADED()
+	XH.XPGainEvent( "Frame", "Event", "Steve dies, you gain 2400 experience." )
+	assertEquals( "(%d+) exp (.+) bonus", XH.RESTED_GAIN_TEXT )
+end
+function test.test_XPGainEvent_sets_XPGAIN_QUEST()
+	XH.VARIABLES_LOADED()
+	XH.XPGainEvent( "Frame", "Event", "You gain 2400 experience." )
+	assertEquals( "You gain (%d+) experience", XH.XPGAIN_QUEST )
+end
+function test.test_XPGainEvent_sets_mobName()
+	XH.XPGainEvent( "Frame", "Event", "Steve dies, you gain 2400 experience." )
+	assertEquals( "Steve", XH.mobName )
+end
+function test.test_XPGainEvent_sets_xpGain()
+	XH.VARIABLES_LOADED()
+	XH.XPGainEvent( "Frame", "Event", "Steve dies, you gain 2400 experience." )
+	assertEquals( "2400", XH.xpGain )
+end
+function test.test_XPGainEvent_sets_xpGain_nonCombat()
+	XH.VARIABLES_LOADED()
+	XH.XPGainEvent( "Frame", "Event", "You gain 2400 experience." )
+	assertEquals( "2400", XH.xpGain )
+end
+function test.test_XPGainEvent_sets_xpGainedStruct_gained()
+	XH.VARIABLES_LOADED()
+	XH.XPGainEvent( "Frame", "Event", "You gain 2400 experience." )
+	assertEquals( 2400, XH.me.xp_session.gained )
+end
+function test.test_XPGainEvent_sets_xpGainedStruct_lastGained()
+	XH.VARIABLES_LOADED()
+	XH.XPGainEvent( "Frame", "Event", "You gain 1200 experience." )
+	assertEquals( "1200", XH.me.xp_session.lastGained )
+end
+function test.test_XPGainEvent_sets_xpGainedStruct_toGo()
+	XH.VARIABLES_LOADED()
+	XH.XPGainEvent( "Frame", "Event", "You gain 1200 experience." )
+	assertEquals( 900, XH.me.xp_session.toGo )
+end
+function test.test_XPGainEvent_sets_xpGainedStruct_rolling()
+	XH_Gains = {}
+	XH.VARIABLES_LOADED()
+	XH.XPGainEvent( "Frame", "Event", "You gain 2400 experience." )
+	assertEquals( 2400, XH.me.xp_session.rolling[time()] )
+end
+function test.test_XPGainEvent_sets_xpGain_withPrevious()
+	XH_Gains = {
+		["testRealm-testPlayer"] = {
+			["xp_session"] = {
+				["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
+				["rolling"] = {
+					[time() - 10] = 1,
+					[time() - 20] = 1,
+					[time() - 30] = 1,
+				}
+			}
+		}
+	}
+	XH.VARIABLES_LOADED()
+	XH.XPGainEvent( "Frame", "Event", "You gain 2400 experience." )
+	assertEquals( 2400, XH.me.xp_session.gained )
+end
+function test.test_XPGainEvent_sets_rolling_withPrevious()
+	XH_Gains = {
+		["testRealm-testPlayer"] = {
+			["xp_session"] = {
+				["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
+				["rolling"] = {
+					[time() - 10] = 1,
+					[time() - 20] = 1,
+					[time() - 30] = 1,
+				}
+			}
+		}
+	}
+	XH.VARIABLES_LOADED()
+	XH.XPGainEvent( "Frame", "Event", "You gain 2400 experience." )
+	assertEquals( 2400, XH.me.xp_session.rolling[time()] )
+end
 
 test.run()
