@@ -31,7 +31,7 @@ function XH.UpdateBars()
 	XH.UpdateXPBarText();
 	--XH_XPBarRested:SetMinMaxValues(0, 150);
 	--print("XH.restedPC: "..XH.restedPC.."("..math.floor(XH.restedPC)..")")
-	XH_XPBarRested:SetValue(math.floor(XH.restedPC or 0))
+	XH_XPBarRested:SetValue(math.floor(tonumber(XH.restedPC) or 0))
 
 	-- update instance bar
 	-- XH_InstanceTimerBar

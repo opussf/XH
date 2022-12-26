@@ -52,7 +52,9 @@ function XH.VARIABLES_LOADED()
 	XH.startedTime = time()
 
 	XH_Gains = XH_Gains or {}
-	if not XH_Gains[XH.playerSlug] then
+	if XH_Gains[XH.playerSlug] then
+		XH.PruneData()
+	else
 		XH_Gains[XH.playerSlug] = {
 			["xp_session"] = XH.InitRate( 0, UnitXPMax("player") - UnitXP("player") ),
 			--["xp_instance"] = XH.InitRate( 0, UnitXPMax("player") - UnitXP("player") ),
@@ -76,12 +78,15 @@ end
 function XH.COMBAT_LOG_EVENT_UNFILTERED( )
 	local ets, subEvent, _, sourceID, sourceName, sourceFlags, sourceRaidFlags,
 			destID, destName, destFlags, _, spellID, spName, _, ext1, ext2, ext3 = CombatLogGetCurrentEventInfo()
-	if( subEvent and subEvent == "PARTY_KILL") then
-		print( ets, subEvent, sourceName, destName )
-	end
-	-- if (arg2 and arg2 == "UNIT_DIED") then
-	-- 	print( "Unit Died: ", arg9, arg8)
+	-- if( subEvent and subEvent == "PARTY_KILL") then
+	-- 	print( ets, subEvent, sourceName, destName )
 	-- end
+end
+function XH.PLAYER_LEVEL_UP()
+--		XH.XPGainEvent();
+	XH.bestTime = 0;
+	XH.lastUpdate = XH.lastUpdate + 5;
+--		RequestTimePlayed();  -- fires off /played
 end
 
 function XH.OnUpdate()  -- use XH_ since it is referenced outside of this file (before the XH. is created)
@@ -91,7 +96,6 @@ function XH.OnUpdate()  -- use XH_ since it is referenced outside of this file (
 	XH.lastUpdate = time()
 	XH.UpdateBars()
 end
-
 
 --
 function XH.Print( msg, showName)
@@ -128,7 +132,7 @@ function XH.XPGainEvent( frame, event, message, ... )
 		XH.EXP_GAIN_TEXT = XH.FormatToPattern(COMBATLOG_XPGAIN_FIRSTPERSON)
 	end
 	if (not XH.RESTED_GAIN_TEXT) then
-		XH.Print(COMBATLOG_XPGAIN_EXHAUSTION1)
+		--XH.Print(COMBATLOG_XPGAIN_EXHAUSTION1)
 		local _, _, restedstr = string.find(COMBATLOG_XPGAIN_EXHAUSTION1, "%(%%s(.*)%)")
 		restedstr = "%d"..restedstr
 		--XH.Print(restedstr)
@@ -146,8 +150,8 @@ function XH.XPGainEvent( frame, event, message, ... )
 		--XH.Print("xpGain:"..XH.xpGain);
 	end
 
-	XH.Print( string.format("%s (%s)", XH.xpGain, ""))
-	-- Hmmm
+	--XH.Print( string.format("%s (%s)", XH.xpGain, ""))
+	-- Record values
 	--XH.Print(XH.EXP_GAIN_TEXT..":"..XH.RESTED_GAIN_TEXT);
 	for counter, gainStruct in pairs(XH.me) do
 		if( gainStruct.gained ) then
@@ -156,11 +160,10 @@ function XH.XPGainEvent( frame, event, message, ... )
 			gainStruct.toGo = UnitXPMax("player") - UnitXP("player")
 			local now = time()
 			gainStruct.rolling[now] = ( gainStruct.rolling[now] and gainStruct.rolling[now] + XH.xpGain )
-					or XH.xpGain
+					or tonumber(XH.xpGain)
 		else
 			XH_XPGains[counter] = XH.InitRate( XH.xpGain, UnitXPMax("player") - UnitXP("player") )
 		end
-		print( counter, gainStruct )
 	end
 end
 
@@ -325,13 +328,23 @@ function XH.SecondsToTime(secsIn)
 	end
 	return string.format("%is", XH.tempVars.sec);
 end
+function XH.PruneData()
+	local now = time()
+	for playerPlug, playerData in pairs( XH_Gains ) do
+		local dataCount = 0
+		for section, sectionStruct in pairs( playerData ) do
+			for ts, val in pairs( sectionStruct.rolling ) do
+				if ts < now - XH.timeRange then
+					sectionStruct.rolling[ts]=nil
+				else
+					dataCount = dataCount + 1
+				end
+			end
+			sectionStruct.gained = 0
+		end
+		if dataCount == 0 then
+			XH_Gains[playerPlug] = nil
+		end
+	end
 
-
-
-
-
-
-
-
-
-
+end
