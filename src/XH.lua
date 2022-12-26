@@ -85,7 +85,7 @@ end
 function XH.PLAYER_LEVEL_UP()
 --		XH.XPGainEvent();
 	XH.bestTime = 0;
-	XH.lastUpdate = XH.lastUpdate + 5;
+	XH.lastUpdate = XH.lastUpdate + 5
 --		RequestTimePlayed();  -- fires off /played
 end
 
@@ -342,7 +342,7 @@ function XH.PruneData()
 			end
 			sectionStruct.gained = 0
 		end
-		if dataCount == 0 then
+		if dataCount == 0 and playerPlug ~= XH.playerSlug then
 			XH_Gains[playerPlug] = nil
 		end
 	end
