@@ -4,9 +4,16 @@ require "wowTest"
 
 XHFrame = CreateFrame()
 XH_XPBarRested = CreateFrame()
+XH_Text = CreateFrame()
+XH_InstanceText = CreateFrame()
+XH_InstanceTimerBar = CreateFrame()
 XH_InstanceTimerBack = CreateFrame()
 XH_SkillBar = CreateFrame()
 XH_SkillBarCD = CreateFrame()
+XH_RepBar = CreateFrame()
+XH_RepText = CreateFrame()
+format = string.format
+date = os.date
 
 ParseTOC( "../src/XH.toc" )
 
@@ -15,6 +22,7 @@ test.outFileName = "testOut.xml"
 -- addon setup
 function test.before()
 	XH_Gains = nil
+	XH.mouseOver = nil
 	XH.OnLoad()
 end
 function test.after()
@@ -166,6 +174,7 @@ function test.test_XPGainEvent_sets_XPGAIN_QUEST()
 	assertEquals( "You gain (%d+) experience", XH.XPGAIN_QUEST )
 end
 function test.test_XPGainEvent_sets_mobName()
+	XH.VARIABLES_LOADED()
 	XH.XPGainEvent( "Frame", "Event", "Steve dies, you gain 2400 experience." )
 	assertEquals( "Steve", XH.mobName )
 end
@@ -234,5 +243,91 @@ function test.test_XPGainEvent_sets_rolling_withPrevious()
 	XH.XPGainEvent( "Frame", "Event", "You gain 2400 experience." )
 	assertEquals( 2400, XH.me.xp_session.rolling[time()] )
 end
+function test.test_OnEnter_Sets_mouseOver()
+	XH.VARIABLES_LOADED()
+	XH.mouseOver = nil
+	XH_OnEnter()
+	assertTrue( XH.mouseOver )
+end
+function test.test_OnLeave_Clears_mouseOver()
+	XH.VARIABLES_LOADED()
+	XH.mouseOver = true
+	XH_OnLeave()
+	assertIsNil( XH.mouseOver )
+end
+
+function test.test_OnUpdate_reset_lastUpdate()
+	XH.lastUpdate = 0
+	XH.VARIABLES_LOADED()
+	XH.OnUpdate()
+	assertEquals( time(), XH.lastUpdate )
+end
+function test.test_OnUpdate_sets_xps()
+	XH.lastUpdate = 0
+	XH.VARIABLES_LOADED()
+	XH.OnUpdate()
+	assertEquals( 0, XH.xps )
+end
+function test.test_OnUpdate_sets_timeToGo()
+	XH.lastUpdate = 0
+	XH.VARIABLES_LOADED()
+	XH.OnUpdate()
+	assertEquals( 0, XH.timeToGo )
+end
+function test.test_OnUpdate_sets_gained()
+	XH.lastUpdate = 0
+	XH.VARIABLES_LOADED()
+	XH.OnUpdate()
+	assertEquals( 0, XH.gained )
+end
+function test.test_OnUpdate_sets_XH_Text()
+	XH.lastUpdate = 0
+	XH.VARIABLES_LOADED()
+	XH.startedTime = time()-92
+	XH.OnUpdate()
+	assertEquals( "1 Min 32 Sec (8.0 FPS)", XH.Text )
+end
+function test.test_OnUpdate_sets_XH_Text_withGained_mouseOver()
+	XH.lastUpdate = 0
+	XH_Gains = {
+		["testRealm-testPlayer"] = {
+			["xp_session"] = {
+				["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
+				["rolling"] = {
+					[time() - 10] = 1,
+					[time() - 20] = 1,
+					[time() - 30] = 1,
+				}
+			}
+		}
+	}
+	XH.VARIABLES_LOADED()
+	XH.startedTime = time()-92
+	XH.XPGainEvent( "Frame", "Event", "You gain 2400 experience." )
+	XH.mouseOver = true
+	XH.OnUpdate()
+	assertEquals( "2400.0 xp in 1 Min 32 Sec (8.0 FPS)", XH.Text )
+end
+function test.notest_OnUpdate_sets_XH_Text_withGained_Normal()
+	XH.lastUpdate = 0
+	XH_Gains = {
+		["testRealm-testPlayer"] = {
+			["xp_session"] = {
+				["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
+				["rolling"] = {
+					[time() - 10] = 1,
+					[time() - 20] = 1,
+					[time() - 30] = 1,
+				}
+			}
+		}
+	}
+	XH.VARIABLES_LOADED()
+	XH.startedTime = time()-92
+	XH.XPGainEvent( "Frame", "Event", "You gain 2400 experience." )
+	XH.OnUpdate()
+	assertEquals( "2400.0 :: Lvl at 0 (0). (0.0 xp/s)", XH.Text )
+end
+
 
 test.run()

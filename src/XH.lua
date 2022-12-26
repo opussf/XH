@@ -30,12 +30,11 @@ function XH.OnLoad()
 	XHFrame:RegisterEvent( "VARIABLES_LOADED" )
 	XHFrame:RegisterEvent( "UPDATE_EXHAUSTION" )
 	-- Do this later
-	XHFrame:RegisterEvent( "COMBAT_LOG_EVENT_UNFILTERED" )
+-- 	XHFrame:RegisterEvent( "COMBAT_LOG_EVENT_UNFILTERED" )
 
-
-	--XHFrame:RegisterEvent( "PLAYER_XP_UPDATE" )
+ 	XHFrame:RegisterEvent( "PLAYER_LEVEL_UP" )
 	ChatFrame_AddMessageEventFilter("CHAT_MSG_COMBAT_XP_GAIN", XH.XPGainEvent)
-	-- register slash commands
+	-- register slash commands (when they are figured out)
 	-- get char data
 	XH.name = UnitName( "player" )
 	XH.realm = GetRealmName()
@@ -49,12 +48,12 @@ function XH.ADDON_LOADED()
 	XH.InitBars()
 end
 function XH.VARIABLES_LOADED()
+	XHFrame:UnregisterEvent( "VARIABLES_LOADED" )
 	XH.startedTime = time()
 
 	XH_Gains = XH_Gains or {}
-	if XH_Gains[XH.playerSlug] then
-		XH.PruneData()
-	else
+	XH.PruneData()
+	if not XH_Gains[XH.playerSlug] then
 		XH_Gains[XH.playerSlug] = {
 			["xp_session"] = XH.InitRate( 0, UnitXPMax("player") - UnitXP("player") ),
 			--["xp_instance"] = XH.InitRate( 0, UnitXPMax("player") - UnitXP("player") ),
@@ -65,30 +64,25 @@ function XH.VARIABLES_LOADED()
 
 	XH.me = XH_Gains[XH.playerSlug]
 	XH.UPDATE_EXHAUSTION()
-	XH.xpNow = UnitXP( "player" )
 end
 function XH.UPDATE_EXHAUSTION()
 	-- update XH.restedPC to the correct value
 	XH.rested = GetXPExhaustion() or 0  -- XP till Exhaustion
 	XH.restedPC = (XH.rested / UnitXPMax("player")) * 100
 	XH.xpNow = UnitXP( "player" )
-
 	-- print(string.format("Rested @%d: %s (%0.2f%%)",time(),XH.rested, XH.restedPC))
 end
-function XH.COMBAT_LOG_EVENT_UNFILTERED( )
-	local ets, subEvent, _, sourceID, sourceName, sourceFlags, sourceRaidFlags,
-			destID, destName, destFlags, _, spellID, spName, _, ext1, ext2, ext3 = CombatLogGetCurrentEventInfo()
-	-- if( subEvent and subEvent == "PARTY_KILL") then
-	-- 	print( ets, subEvent, sourceName, destName )
-	-- end
-end
+-- function XH.COMBAT_LOG_EVENT_UNFILTERED( )
+-- 	local ets, subEvent, _, sourceID, sourceName, sourceFlags, sourceRaidFlags,
+-- 			destID, destName, destFlags, _, spellID, spName, _, ext1, ext2, ext3 = CombatLogGetCurrentEventInfo()
+-- 	-- if( subEvent and subEvent == "PARTY_KILL") then
+-- 	-- 	print( ets, subEvent, sourceName, destName )
+-- 	-- end
+-- end
 function XH.PLAYER_LEVEL_UP()
---		XH.XPGainEvent();
-	XH.bestTime = 0;
-	XH.lastUpdate = XH.lastUpdate + 5
---		RequestTimePlayed();  -- fires off /played
+	-- XH.bestTime = 0
+	-- XH.lastUpdate = XH.lastUpdate + 5
 end
-
 function XH.OnUpdate()  -- use XH_ since it is referenced outside of this file (before the XH. is created)
 	if (time() < XH.lastUpdate + 1) then	-- short cut out
 		return
@@ -138,15 +132,15 @@ function XH.XPGainEvent( frame, event, message, ... )
 		--XH.Print(restedstr)
 		XH.RESTED_GAIN_TEXT = XH.FormatToPattern( restedstr )
 	end
-	XH.xpGain = nil;
-	_, _, XH.mobName, XH.xpGain = string.find(message, XH.EXP_GAIN_TEXT);
+	XH.xpGain = nil
+	_, _, XH.mobName, XH.xpGain = string.find(message, XH.EXP_GAIN_TEXT)
 	if (not XH.xpGain) then  -- xpgain is not from combat
 		--XH.Print("No xpGain", false)
 		if (not XH.XPGAIN_QUEST) then
 			XH.XPGAIN_QUEST = XH.FormatToPattern("You gain %d experience")
 		end
 		--XH.Print(XH.XPGAIN_QUEST)
-		_,_,XH.xpGain = string.find(message, XH.XPGAIN_QUEST);
+		_,_,XH.xpGain = string.find(message, XH.XPGAIN_QUEST)
 		--XH.Print("xpGain:"..XH.xpGain);
 	end
 
@@ -162,7 +156,7 @@ function XH.XPGainEvent( frame, event, message, ... )
 			gainStruct.rolling[now] = ( gainStruct.rolling[now] and gainStruct.rolling[now] + XH.xpGain )
 					or tonumber(XH.xpGain)
 		else
-			XH_XPGains[counter] = XH.InitRate( XH.xpGain, UnitXPMax("player") - UnitXP("player") )
+			XH_Gains[counter] = XH.InitRate( XH.xpGain, UnitXPMax("player") - UnitXP("player") )
 		end
 	end
 end
@@ -181,7 +175,7 @@ function XH.UpdateXPBarText(self)
 	XH.xps, XH.timeToGo, XH.gained = XH.Rate2( XH.me.xp_session )
 
 	if (XH.gained) and (XH.gained > 0) and (not XH.mouseOver) then
---		XH.xps, XH.timeToGo = XH.Rate( XH_XPGains.session );
+		--XH.xps, XH.timeToGo = XH.Rate( XH_XPGains.session );
 		--XH.Text = format("%d XP in %s (%0.2f xp/s) %s to go. (%0.1f FPS)",
 		--		XH_XPGains.session.gained, XH.SecondsToTime(time()-XH_XPGains.session.start),
 		--		xps, XH.SecondsToTime(timeToGo), GetFramerate());
@@ -193,17 +187,17 @@ function XH.UpdateXPBarText(self)
 				XH.SecondsToTime(XH.timeToGo),
 				date(XH.MakeTimeFormat(XH.timeToGo), time()+XH.timeToGo),
 				date(XH.MakeTimeFormat(XH.timeToGo), XH.bestTime),
-				XH.xps);
+				XH.xps)
 	else
-		XH.Text = SecondsToTime(XH.lastUpdate - XH.startedTime, false, false, 5);  -- use the built in function
+		XH.Text = SecondsToTime(XH.lastUpdate - XH.startedTime, false, false, 5)  -- use the built in function
 		if (XH.me.xp_session.gained and XH.me.xp_session.gained> 0) then
 			XH.Text = format("%s xp in %s (%0.1f FPS)",
-					XH.me.xp_session.gained, XH.Text, GetFramerate());
+					XH.me.xp_session.gained, XH.Text, GetFramerate())
 		else
-			XH.Text = format("%s (%0.1f FPS)", XH.Text, GetFramerate());
+			XH.Text = format("%s (%0.1f FPS)", XH.Text, GetFramerate())
 		end
 	end
-	XH_Text:SetText(XH.Text);
+	XH_Text:SetText(XH.Text)
 	--XH.Print(XH.Text);
 	--[[
 	if (XH_total_XPS > 0) then
@@ -281,7 +275,7 @@ function XH.Rate2( rateStruct )
 					XH.xpSum;
 		end
 	end
-	return 0, 0, 0;
+	return 0, 0, 0
 end
 -- build time format string for when a level is expected based on how far in the future
 function XH.MakeTimeFormat(timeToGo,sixty)
@@ -335,7 +329,7 @@ function XH.PruneData()
 		for section, sectionStruct in pairs( playerData ) do
 			for ts, val in pairs( sectionStruct.rolling ) do
 				if ts < now - XH.timeRange then
-					sectionStruct.rolling[ts]=nil
+					sectionStruct.rolling[ts] = nil
 				else
 					dataCount = dataCount + 1
 				end

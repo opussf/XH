@@ -3,32 +3,27 @@ function XH.InitBars()
 	XH_XPBarRested:SetMinMaxValues(0, 150);
 	XH_XPBarRested:SetValue(150);
 
-	-- InstanceTimer
-	XH_InstanceTimerBack:SetMinMaxValues( 0, 1 );
-	XH_InstanceTimerBack:SetValue( 1 );
+-- 	-- InstanceTimer
+-- 	XH_InstanceTimerBack:SetMinMaxValues( 0, 1 );
+-- 	XH_InstanceTimerBack:SetValue( 1 );
 
-	-- SkillBars
-	XH_SkillBar:Hide()
-	XH_SkillBarCD:Hide()
+-- 	-- SkillBars
+-- 	XH_SkillBar:Hide()
+-- 	XH_SkillBarCD:Hide()
 end
-
-function XH.UpdateBars()
-end
-
 -- Enter function, will be ran on mouseover.
 function XH_OnEnter()
-	XH.mouseOver = true;
-	XH.UpdateBars();
+	XH.mouseOver = true
+	XH.UpdateBars()
 end
-
 -- Leave function, will be ran on mouseoverleave.
 function XH_OnLeave()
-	XH.mouseOver = nil;
-	XH.UpdateBars();
+	XH.mouseOver = nil
+	XH.UpdateBars()
 end
 
 function XH.UpdateBars()
-	XH.UpdateXPBarText();
+	XH.UpdateXPBarText()
 	--XH_XPBarRested:SetMinMaxValues(0, 150);
 	--print("XH.restedPC: "..XH.restedPC.."("..math.floor(XH.restedPC)..")")
 	if XH.restedPC ~= XH.restedPC then XH.restedPC = 0; end

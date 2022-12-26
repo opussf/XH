@@ -1202,6 +1202,9 @@ end
 function GetDifficultyInfo( diffInt )
 	return dungeonDifficultyLookup[diffInt]
 end
+function GetFramerate()
+	return 8
+end
 function IsResting()
 	return true
 end
