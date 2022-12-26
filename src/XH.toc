@@ -4,7 +4,7 @@
 ## Author: sistersally of hyjal
 ## Version: @VERSION@
 ## Description: Slash command function to output XP/Hour
-## SavedVariables: XH_options XH_XPGains
+## SavedVariables: XH_options XH_Gains
 ## SavedVariablesPerCharacter: XH_playedByLevel
 
 XH.lua

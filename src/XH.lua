@@ -25,6 +25,10 @@ function XH.OnLoad()
 	XHFrame:RegisterEvent( "ADDON_LOADED" )
 	XHFrame:RegisterEvent( "VARIABLES_LOADED" )
 	XHFrame:RegisterEvent( "UPDATE_EXHAUSTION" )
+	-- Do this later
+	XHFrame:RegisterEvent( "COMBAT_LOG_EVENT_UNFILTERED" )
+
+
 	--XHFrame:RegisterEvent( "PLAYER_XP_UPDATE" )
 	ChatFrame_AddMessageEventFilter("CHAT_MSG_COMBAT_XP_GAIN", XH.XPGainEvent)
 	-- register slash commands
@@ -38,6 +42,7 @@ end
 -- event handling
 function XH.ADDON_LOADED()
 	XHFrame:UnregisterEvent( "ADDON_LOADED" )
+	XH.InitBars()
 end
 function XH.VARIABLES_LOADED()
 	XH.startedTime = time()
@@ -45,10 +50,10 @@ function XH.VARIABLES_LOADED()
 	XH_Gains = XH_Gains or {}
 	if not XH_Gains[XH.playerSlug] then
 		XH_Gains[XH.playerSlug] = {
-			["xp_session"] = {},
-			["xp_instance"] = {},
-			["kills_session"] = {},
-			["kills_instance"] = {}
+			["xp_session"] = XH.InitRate( 0, UnitXPMax("player") - UnitXP("player") ),
+			["xp_instance"] = XH.InitRate( 0, UnitXPMax("player") - UnitXP("player") ),
+			--["kills_session"] = {},
+			--["kills_instance"] = {}
 		}
 	end
 
@@ -64,6 +69,18 @@ function XH.UPDATE_EXHAUSTION()
 
 	print(string.format("Rested @%d: %s (%0.2f%%)",time(),XH.rested, XH.restedPC))
 end
+function XH.COMBAT_LOG_EVENT_UNFILTERED( )
+	local ets, subEvent, _, sourceID, sourceName, sourceFlags, sourceRaidFlags,
+			destID, destName, destFlags, _, spellID, spName, _, ext1, ext2, ext3 = CombatLogGetCurrentEventInfo()
+	if( subEvent and subEvent == "PARTY_KILL") then
+		print( ets, subEvent, sourceName, destName )
+	end
+	-- if (arg2 and arg2 == "UNIT_DIED") then
+	-- 	print( "Unit Died: ", arg9, arg8)
+	-- end
+end
+
+
 
 --
 function XH.Print( msg, showName)
@@ -118,8 +135,22 @@ function XH.XPGainEvent( frame, event, message, ... )
 		--XH.Print("xpGain:"..XH.xpGain);
 	end
 
+	XH.Print( string.format("%s (%s)", XH.xpGain, ""))
 	-- Hmmm
 	--XH.Print(XH.EXP_GAIN_TEXT..":"..XH.RESTED_GAIN_TEXT);
+	for counter, gainStruct in pairs(XH.me) do
+		if( gainStruct.gained ) then
+			gainStruct.gained = gainStruct.gained + XH.xpGain
+			gainStruct.lastGained  = XH.xpGain
+			gainStruct.toGo = UnitXPMax("player") - UnitXP("player")
+			local now = time()
+			gainStruct.rolling[now] = ( gainStruct.rolling[now] and gainStruct.rolling[now] + XH.xpGain )
+					or XH.xpGain
+		else
+			XH_XPGains[counter] = XH.InitRate( XH.xpGain, UnitXPMax("player") - UnitXP("player") )
+		end
+		print( counter, gainStruct )
+	end
 	-- for counter, gain in pairs(XH_XPGains) do
 	-- 	if (gain.gained) then
 	-- 		gain.gained = gain.gained + XH.xpGain;
@@ -136,6 +167,15 @@ function XH.XPGainEvent( frame, event, message, ... )
 	-- end
 end
 
+function XH.InitRate( gainedValue, toGo )
+	return {
+			["gained"] = gainedValue,
+			["start"] = time(),
+			["lastGained"] = gainedValue,
+			["toGo"] = toGo,
+			["rolling"] = {[time()] = gainedValue},
+	}
+end
 
 
 
