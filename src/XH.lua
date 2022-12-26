@@ -15,12 +15,14 @@ COLOR_GOLD = "|cffcfb52b"
 COLOR_NEON_BLUE = "|cff4d4dff"
 COLOR_END = "|r"
 
---[[
 XH.rateGraph={[0]="_",[1]=".",[2]="·",[3]="-",[4]="^"};
 XH.rateGraph={[0]="_",[1]="░",[2]="▒",[3]="▓",[4]="█"};
-]]
 
+XH.restedPC = 0  -- 0 - 150%  Used to update the rested bar
 XH.lastUpdate = 0
+--XH.minRateTime = 15*60;  -- minimum time to use to calculate rates
+XH.timeRange = 30*60
+XH.bestTime = 0
 
 function XH.OnLoad()
 	-- register events
@@ -53,7 +55,7 @@ function XH.VARIABLES_LOADED()
 	if not XH_Gains[XH.playerSlug] then
 		XH_Gains[XH.playerSlug] = {
 			["xp_session"] = XH.InitRate( 0, UnitXPMax("player") - UnitXP("player") ),
-			["xp_instance"] = XH.InitRate( 0, UnitXPMax("player") - UnitXP("player") ),
+			--["xp_instance"] = XH.InitRate( 0, UnitXPMax("player") - UnitXP("player") ),
 			--["kills_session"] = {},
 			--["kills_instance"] = {}
 		}
@@ -69,7 +71,7 @@ function XH.UPDATE_EXHAUSTION()
 	XH.restedPC = (XH.rested / UnitXPMax("player")) * 100
 	XH.xpNow = UnitXP( "player" )
 
-	print(string.format("Rested @%d: %s (%0.2f%%)",time(),XH.rested, XH.restedPC))
+	-- print(string.format("Rested @%d: %s (%0.2f%%)",time(),XH.rested, XH.restedPC))
 end
 function XH.COMBAT_LOG_EVENT_UNFILTERED( )
 	local ets, subEvent, _, sourceID, sourceName, sourceFlags, sourceRaidFlags,
@@ -160,20 +162,6 @@ function XH.XPGainEvent( frame, event, message, ... )
 		end
 		print( counter, gainStruct )
 	end
-	-- for counter, gain in pairs(XH_XPGains) do
-	-- 	if (gain.gained) then
-	-- 		gain.gained = gain.gained + XH.xpGain;
-	-- 		gain.lastGained = XH.xpGain;
-	-- 		gain.toGo = UnitXPMax("player") - UnitXP("player");  -- this needs to happen for lvling
-	-- 		local now = time();
-
-	-- 		XH_XPGains[counter].rolling[now] =
-	-- 			(XH_XPGains[counter].rolling[now] and XH_XPGains[counter].rolling[now] + XH.xpGain) -- entry exists
-	-- 			or XH.xpGain;  -- extry does not exist
-	-- 	else  -- odd.  Cannot do gain={}.  seems to fail
-	-- 		XH_XPGains[counter] = XH.InitRate(xpGain, UnitXPMax("player") - UnitXP("player"));
-	-- 	end
-	-- end
 end
 
 function XH.InitRate( gainedValue, toGo )
@@ -187,7 +175,7 @@ function XH.InitRate( gainedValue, toGo )
 end
 
 function XH.UpdateXPBarText(self)
-	XH.xps, XH.timeToGo, XH.gained = XH.Rate2( XH_XPGains.session );
+	XH.xps, XH.timeToGo, XH.gained = XH.Rate2( XH.me.xp_session )
 
 	if (XH.gained) and (XH.gained > 0) and (not XH.mouseOver) then
 --		XH.xps, XH.timeToGo = XH.Rate( XH_XPGains.session );
@@ -205,9 +193,9 @@ function XH.UpdateXPBarText(self)
 				XH.xps);
 	else
 		XH.Text = SecondsToTime(XH.lastUpdate - XH.startedTime, false, false, 5);  -- use the built in function
-		if (XH_XPGains.session.gained and XH_XPGains.session.gained > 0) then
-			XH.Text = format("%s xp (%0.2f bubbles) in %s (%0.1f FPS)",
-					XH_XPGains.session.gained, (XH_XPGains.session.gained / XH.bubbleSize), XH.Text, GetFramerate());
+		if (XH.me.xp_session.gained and XH.me.xp_session.gained> 0) then
+			XH.Text = format("%s xp in %s (%0.1f FPS)",
+					XH.me.xp_session.gained, XH.Text, GetFramerate());
 		else
 			XH.Text = format("%s (%0.1f FPS)", XH.Text, GetFramerate());
 		end
@@ -292,7 +280,51 @@ function XH.Rate2( rateStruct )
 	end
 	return 0, 0, 0;
 end
+-- build time format string for when a level is expected based on how far in the future
+function XH.MakeTimeFormat(timeToGo,sixty)
+	if (timeToGo < 60) and (sixty == 1) then
+		return "%Ss";
+	elseif (timeToGo < 3600) and (sixty == 1) then
+		return "%Mm%S";
+	elseif (timeToGo < 86400) and (sixty == 1) then -- less than 24 hours
+		return "%Hh%M";
+	elseif (timeToGo < 43200) then  -- less than 12 hours
+		return "%H:%M";
+	elseif (timeToGo < 604800) then -- less than a week
+		return "%a at %H:%M";
+	elseif (timeToGo < 1209600) then -- less than 2 weeks
+		return "Next %a at %H:%M";
+	else
+		return "%x %X";
+	end
+end
+function XH.SecondsToTime(secsIn)
+	if (not secsIn) then
+		return
+	end
 
+	XH.tempVars = XH.tempVars or {}
+	-- Blizzard's SecondsToTime() function cannot be printed into Chat.  Has bad escape codes.
+	XH.tempVars.day, XH.tempVars.hour, XH.tempVars.minute, XH.tempVars.sec = 0, 0, 0, 0;
+
+	XH.tempVars.day = string.format("%i", (secsIn / 86400)) * 1;	-- LUA integer conversion
+	if XH.tempVars.day < 0 then return ""; end
+	secsIn = secsIn - (XH.tempVars.day * 86400);
+	XH.tempVars.hour = string.format("%i", (secsIn / 3600)) * 1;
+	if (XH.tempVars.day > 0) then
+		return string.format("%i Day %i Hour", XH.tempVars.day, XH.tempVars.hour);
+	end
+	secsIn = secsIn - (XH.tempVars.hour * 3600);
+	XH.tempVars.minute = string.format("%i", (secsIn / 60)) * 1;
+	if (XH.tempVars.hour > 0) then
+		return string.format("%ih %im", XH.tempVars.hour, XH.tempVars.minute);
+	end
+	XH.tempVars.sec = secsIn - (XH.tempVars.minute * 60);
+	if (XH.tempVars.minute>0) then
+		return string.format("%im %is", XH.tempVars.minute, XH.tempVars.sec);
+	end
+	return string.format("%is", XH.tempVars.sec);
+end
 
 
 
