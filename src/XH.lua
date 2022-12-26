@@ -20,6 +20,8 @@ XH.rateGraph={[0]="_",[1]=".",[2]="·",[3]="-",[4]="^"};
 XH.rateGraph={[0]="_",[1]="░",[2]="▒",[3]="▓",[4]="█"};
 ]]
 
+XH.lastUpdate = 0
+
 function XH.OnLoad()
 	-- register events
 	XHFrame:RegisterEvent( "ADDON_LOADED" )
@@ -80,6 +82,13 @@ function XH.COMBAT_LOG_EVENT_UNFILTERED( )
 	-- end
 end
 
+function XH.OnUpdate()  -- use XH_ since it is referenced outside of this file (before the XH. is created)
+	if (time() < XH.lastUpdate + 1) then	-- short cut out
+		return
+	end
+	XH.lastUpdate = time()
+	XH.UpdateBars()
+end
 
 
 --
@@ -177,7 +186,112 @@ function XH.InitRate( gainedValue, toGo )
 	}
 end
 
+function XH.UpdateXPBarText(self)
+	XH.xps, XH.timeToGo, XH.gained = XH.Rate2( XH_XPGains.session );
 
+	if (XH.gained) and (XH.gained > 0) and (not XH.mouseOver) then
+--		XH.xps, XH.timeToGo = XH.Rate( XH_XPGains.session );
+		--XH.Text = format("%d XP in %s (%0.2f xp/s) %s to go. (%0.1f FPS)",
+		--		XH_XPGains.session.gained, XH.SecondsToTime(time()-XH_XPGains.session.start),
+		--		xps, XH.SecondsToTime(timeToGo), GetFramerate());
+		if (XH.bestTime > time()+XH.timeToGo) or (XH.bestTime < time()) then
+			XH.bestTime = time()+XH.timeToGo;
+			--XH.Print(date("%x %X",XH.bestTime));
+		end
+		XH.Text = format("%s :: Lvl at %s (%s). (%0.2f xp/s)",
+				XH.SecondsToTime(XH.timeToGo),
+				date(XH.MakeTimeFormat(XH.timeToGo), time()+XH.timeToGo),
+				date(XH.MakeTimeFormat(XH.timeToGo), XH.bestTime),
+				XH.xps);
+	else
+		XH.Text = SecondsToTime(XH.lastUpdate - XH.startedTime, false, false, 5);  -- use the built in function
+		if (XH_XPGains.session.gained and XH_XPGains.session.gained > 0) then
+			XH.Text = format("%s xp (%0.2f bubbles) in %s (%0.1f FPS)",
+					XH_XPGains.session.gained, (XH_XPGains.session.gained / XH.bubbleSize), XH.Text, GetFramerate());
+		else
+			XH.Text = format("%s (%0.1f FPS)", XH.Text, GetFramerate());
+		end
+	end
+	XH_Text:SetText(XH.Text);
+	--XH.Print(XH.Text);
+	--[[
+	if (XH_total_XPS > 0) then
+		XH_tolvl_str = string.format("%s :: Lvl at %s (%s) %s/B", XH_time_to_lvl_str, XH_lvl_time_str, XH_lvl_time_best_str, XH_time_per_bubble_str);
+		XH_tonorm_str = string.format("%s :: Norm at %s (%s) %s/B", XH_time_to_norm_str, XH_norm_time_str, XH_norm_time_best_str, XH_time_per_bubble_str);
+		if (XH.showRested) and (XH.rested > 0) and (XH_time_to_norm < XH_time_to_lvl) then
+			XH_tolvl_str = XH_tonorm_str;	-- show rested
+		elseif XH.showRested and (XH.rested < 1) then
+			if XH.info then XH_Print("Rested done"); end
+			XH.showRested = false;
+		end
+	end
+	]]--
+end
+function XH.Rate2( rateStruct )
+	-- returns rate/second, seconds till threshold, totalgained
+	local change = nil;
+	XH.rateMax = 0;
+	if rateStruct.gained then
+		XH.rateByMin={};
+		local newKey = 0;
+		XH.xpSum = 0; XH.xpCount = 0;
+		XH.startTS, XH.mostRecentTS = time(), time()-XH.timeRange;
+		for key, val in pairs(rateStruct.rolling) do
+			XH.xpCount = XH.xpCount +1;
+			XH.startTS = min(XH.startTS, key);
+			XH.mostRecentTS = max(XH.mostRecentTS, key);
+			XH.xpSum = XH.xpSum + val;
+			--XH.Print(key.." ("..(time()-key).."):"..val.."("..XH.xpSum..")"..math.floor((time()-key)/60));
+			newKey = math.floor((time()-key)/60);
+
+			XH.rateByMin[newKey] = (XH.rateByMin[newKey] and XH.rateByMin[newKey] + val) or val;
+			XH.rateMax = max(XH.rateMax, XH.rateByMin[newKey]);
+
+			if ((key+XH.timeRange) <= time()) then
+				--XH_XPGains.session.rolling[key] = nil;
+				rateStruct.rolling[key] = nil;
+				change = true;
+			end
+
+		end
+		if (XH_options.showRateGraphs) and (XH.xpCount > 0) and (XH.xpSum > 0) and (time()%10 == 0) then
+			-- Every 10 seconds if there is +data
+			local strOut = ":";
+			for key=0,((XH.timeRange/60)-1) do
+	--			strOut = strOut .. (XH.rateByMin[key] and '*' or XH.rateGraph[0]);
+				strOut = strOut .. (XH.rateByMin[key] and
+						(XH.rateGraph[ceil((XH.rateByMin[key] * 4)/max(XH.rateMax,1))]) or XH.rateGraph[0]);
+				if (key>0) and ((key+1)%5 == 0) then
+					strOut = strOut .. "|";
+				end
+			end
+			XH_RepText:SetText(strOut.." : "..XH.xpCount.."("..XH.rateMax..")");
+			XH_RepText:Show();
+			--XH.Print(strOut.." : "..XH.xpCount.."("..XH.rateMax.."): "..XH.SecondsToTime( rateStruct.toGo/(XH.xpSum/XH.timeRange) ));
+		end
+--		if (XH.xpSum > 0) and (not XH.xpSumOld or XH.xpSum ~= XH.xpSumOld) then
+		if false and change then
+			--local rate = XH.xpSum / (XH.mostRecentTS-XH.startTS);
+			--local timeRemain = XH_XPGains.session.toGo / rate;
+			XH.Print(string.format("%d in (%s -%i- %s) %0.2f /sec %s",
+					XH.xpSum,
+					XH.SecondsToTime(time() - XH.mostRecentTS),
+					XH.xpCount,
+					XH.SecondsToTime(XH.mostRecentTS-XH.startTS),
+					XH.xpSum / (XH.timeRange),
+					XH.SecondsToTime( rateStruct.toGo/(XH.xpSum/XH.timeRange) )));
+			--XH.Print(collectgarbage("count"));
+			XH.xpSumOld = XH.xpSum;
+		end
+		if (XH.xpSum > 0) then
+			--XH.Print(rateStruct.toGo..":"..XH.xpSum..":"..XH.timeRange);
+			return ((XH.mostRecentTS-XH.startTS)>0) and XH.xpSum / (XH.timeRange) or 0,
+					rateStruct.toGo/(XH.xpSum/XH.timeRange),
+					XH.xpSum;
+		end
+	end
+	return 0, 0, 0;
+end
 
 
 

@@ -12,14 +12,17 @@ function XH.InitBars()
 	XH_SkillBarCD:Hide()
 end
 
+function XH.UpdateBars()
+end
+
 -- Enter function, will be ran on mouseover.
 function XH_OnEnter()
 	XH.mouseOver = true;
-	--XH.UpdateBars();
+	XH.UpdateBars();
 end
 
 -- Leave function, will be ran on mouseoverleave.
 function XH_OnLeave()
 	XH.mouseOver = nil;
-	--XH.UpdateBars();
+	XH.UpdateBars();
 end

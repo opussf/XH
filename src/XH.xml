@@ -234,9 +234,9 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 			<OnLoad>
 				XH.OnLoad()
 			</OnLoad>
-		<!-- 	<OnUpdate>
-				XH.OnUpdate( elapsed )
-			</OnUpdate> -->
+			<OnUpdate>
+				XH["OnUpdate"]( elapsed )
+			</OnUpdate>
 			<OnEvent>
 				XH[event]( ... )
 			</OnEvent>
