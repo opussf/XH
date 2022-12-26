@@ -391,8 +391,8 @@ Frame = {
 		["GetHeight"] = function(self) return( self.height ); end,
 		["CreateFontString"] = function(self, ...) return(CreateFontString(...)) end,
 
-		["SetMinMaxValues"] = function() end,
-		["SetValue"] = function() end,
+		["SetMinMaxValues"] = function(self, min, max) self.min=min; self.max=max; end,
+		["SetValue"] = function(self, value) self.value=value end,
 		["SetStatusBarColor"] = function() end,
 		["SetScript"] = function() end,
 		["SetAttribute"] = function() end,
