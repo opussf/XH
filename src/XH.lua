@@ -63,7 +63,7 @@ function XH.VARIABLES_LOADED()
 	end
 
 	XH.me = XH_Gains[XH.playerSlug]
-	XH.UPDATE_EXHAUSTION()
+	--XH.UPDATE_EXHAUSTION()
 end
 function XH.UPDATE_EXHAUSTION()
 	-- update XH.restedPC to the correct value
