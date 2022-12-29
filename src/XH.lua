@@ -185,8 +185,8 @@ function XH.UpdateXPBarText(self)
 		end
 		XH.Text = format("%s :: Lvl at %s (%s). (%0.2f xp/s)",
 				XH.SecondsToTime(XH.timeToGo),
-				date(XH.MakeTimeFormat(XH.timeToGo), time()+XH.timeToGo),
-				date(XH.MakeTimeFormat(XH.timeToGo), XH.bestTime),
+				date(XH.MakeTimeFormat(XH.timeToGo), math.floor(time()+XH.timeToGo)),
+				date(XH.MakeTimeFormat(XH.timeToGo), math.floor(XH.bestTime)),
 				XH.xps)
 	else
 		XH.Text = SecondsToTime(XH.lastUpdate - XH.startedTime, false, false, 5)  -- use the built in function
@@ -302,21 +302,22 @@ function XH.SecondsToTime(secsIn)
 
 	XH.tempVars = XH.tempVars or {}
 	-- Blizzard's SecondsToTime() function cannot be printed into Chat.  Has bad escape codes.
-	XH.tempVars.day, XH.tempVars.hour, XH.tempVars.minute, XH.tempVars.sec = 0, 0, 0, 0;
+	XH.tempVars.day, XH.tempVars.hour, XH.tempVars.minute, XH.tempVars.sec = 0, 0, 0, 0
 
-	XH.tempVars.day = string.format("%i", (secsIn / 86400)) * 1;	-- LUA integer conversion
+	XH.tempVars.day = math.floor( secsIn / 86400 )
 	if XH.tempVars.day < 0 then return ""; end
-	secsIn = secsIn - (XH.tempVars.day * 86400);
-	XH.tempVars.hour = string.format("%i", (secsIn / 3600)) * 1;
+	secsIn = secsIn - (XH.tempVars.day * 86400)
+	XH.tempVars.hour = math.floor(secsIn / 3600)
 	if (XH.tempVars.day > 0) then
-		return string.format("%i Day %i Hour", XH.tempVars.day, XH.tempVars.hour);
+		print( string.format("%s Day"), XH.tempVars.day )
+		return string.format("%i Day %i Hour", tonumber(XH.tempVars.day), tonumber(XH.tempVars.hour))
 	end
 	secsIn = secsIn - (XH.tempVars.hour * 3600);
-	XH.tempVars.minute = string.format("%i", (secsIn / 60)) * 1;
+	XH.tempVars.minute = math.floor(secsIn / 60)
 	if (XH.tempVars.hour > 0) then
 		return string.format("%ih %im", XH.tempVars.hour, XH.tempVars.minute);
 	end
-	XH.tempVars.sec = secsIn - (XH.tempVars.minute * 60);
+	XH.tempVars.sec = math.floor(secsIn - (XH.tempVars.minute * 60))
 	if (XH.tempVars.minute>0) then
 		return string.format("%im %is", XH.tempVars.minute, XH.tempVars.sec);
 	end

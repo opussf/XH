@@ -146,14 +146,16 @@ function test.test_VARIABLES_LOADED_OtherData_pruneOld()
 	XH.VARIABLES_LOADED()
 	assertIsNil( XH_Gains["otherRealm-otherPlayer"] )
 end
-function test.notest_VARIABLES_LOADED_Sets_Rested()
+function test.test_UPDATE_EXHAUSTION_Sets_Rested()
 	-- @TODO UPDATE_EXHAUSTION should probably be called with Player_Entering_World event
 	XH.VARIABLES_LOADED()
+	XH.UPDATE_EXHAUSTION()
 	assertEquals( 3618, XH.rested )
 end
-function test.notest_VARIABLES_LOADED_Sets_RestedPC()
+function test.test_UPDATE_EXHAUSTION_Sets_RestedPC()
 	-- @TODO UPDATE_EXHAUSTION should probably be called with Player_Entering_World event
 	XH.VARIABLES_LOADED()
+	XH.UPDATE_EXHAUSTION()
 	assertEquals( 361.8, XH.restedPC )
 end
 function test.test_XPGainEvent_sets_EXP_GAIN_TEXT()
@@ -306,7 +308,7 @@ function test.test_OnUpdate_sets_XH_Text_withGained_mouseOver()
 	XH.OnUpdate()
 	assertEquals( "2400.0 xp in 1 Min 32 Sec (8.0 FPS)", XH.Text )
 end
-function test.notest_OnUpdate_sets_XH_Text_withGained_Normal()
+function test.test_OnUpdate_sets_XH_Text_withGained_Normal()
 	XH.lastUpdate = 0
 	XH_Gains = {
 		["testRealm-testPlayer"] = {
@@ -324,7 +326,11 @@ function test.notest_OnUpdate_sets_XH_Text_withGained_Normal()
 	XH.startedTime = time()-92
 	XH.XPGainEvent( "Frame", "Event", "You gain 2400 experience." )
 	XH.OnUpdate()
-	assertEquals( "2400.0 :: Lvl at 0 (0). (0.0 xp/s)", XH.Text )
+	assertEquals( 0, XH.tempVars.day, "day should be 0" )
+	assertEquals( 0, XH.tempVars.hour, "hour should be 0" )
+	assertEquals( 11, XH.tempVars.minute, "minute should be 11" )
+	assertEquals( 14, XH.tempVars.sec, "sec should be 14" )
+	assertEquals( 1.335, XH.xps, "xps should be 1.335" )
 end
 
 
