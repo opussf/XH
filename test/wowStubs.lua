@@ -1,7 +1,7 @@
 -----------------------------------------
 -- Author  :  Opussf
--- Date    :  November 20 2022
--- Revision:  9.0.3-2-gefe4ec3-100002
+-- Date    :  December 31 2022
+-- Revision:  9.0.3-4-g11727de-100002
 -----------------------------------------
 -- These are functions from wow that have been needed by addons so far
 -- Not a complete list of the functions.
@@ -790,18 +790,13 @@ function GetCoinTextureString( copperIn, fontHeight )
 				(copper and copper.."C"))
 	end
 end
-function GetContainerItemLink( bagId, slotId )
-end
-function GetContainerNumSlots( bagId )
-	-- http://wowwiki.wikia.com/wiki/API_GetContainerNumSlots
-	-- returns the number of slots in the bag, or 0 if no bag
-	if bagInfo[bagId] then
-		return bagInfo[bagId][1]
-	else
-		return 0
-	end
-end
+
+
 C_Container = {}
+function C_Container.GetContainerItemInfo( bagId, slotId )
+end
+function C_Container.GetContainerItemLink( bagId, slotId )
+end
 function C_Container.GetBagSlotFlag( bagId, filterFlagCheck )
 	-- returns true if the filterFlagCheck matches the bag's filterFlag
 	return true
@@ -818,6 +813,17 @@ function C_Container.GetContainerNumFreeSlots( bagId )
 	else
 		return 0, 0
 	end
+end
+function C_Container.GetContainerNumSlots( bagId )
+	-- http://wowwiki.wikia.com/wiki/API_GetContainerNumSlots
+	-- returns the number of slots in the bag, or 0 if no bag
+	if bagInfo[bagId] then
+		return bagInfo[bagId][1]
+	else
+		return 0
+	end
+end
+function C_Container.UseContainerItem( bagId, slotId )
 end
 function GetEquipmentSetItemIDs( setName )
 	-- http://wowprogramming.com/docs/api/GetEquipmentSetItemIDs
