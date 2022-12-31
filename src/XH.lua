@@ -20,7 +20,6 @@ XH.rateGraph={[0]="_",[1]="░",[2]="▒",[3]="▓",[4]="█"};
 
 XH.restedPC = 0  -- 0 - 150%  Used to update the rested bar
 XH.lastUpdate = 0
---XH.minRateTime = 15*60;  -- minimum time to use to calculate rates
 XH.timeRange = 30*60
 XH.bestTime = 0
 
@@ -30,9 +29,9 @@ function XH.OnLoad()
 	XHFrame:RegisterEvent( "VARIABLES_LOADED" )
 	XHFrame:RegisterEvent( "UPDATE_EXHAUSTION" )
 	-- Do this later
--- 	XHFrame:RegisterEvent( "COMBAT_LOG_EVENT_UNFILTERED" )
+	-- XHFrame:RegisterEvent( "COMBAT_LOG_EVENT_UNFILTERED" )
 
- 	XHFrame:RegisterEvent( "PLAYER_LEVEL_UP" )
+	XHFrame:RegisterEvent( "PLAYER_LEVEL_UP" )
 	ChatFrame_AddMessageEventFilter("CHAT_MSG_COMBAT_XP_GAIN", XH.XPGainEvent)
 	-- register slash commands (when they are figured out)
 	-- get char data
@@ -63,14 +62,11 @@ function XH.VARIABLES_LOADED()
 	end
 
 	XH.me = XH_Gains[XH.playerSlug]
-	--XH.UPDATE_EXHAUSTION()
 end
-function XH.UPDATE_EXHAUSTION()
+function XH.UPDATE_EXHAUSTION() -- @TODO: Also call this for PLAYER_ENTERING_WORLD
 	-- update XH.restedPC to the correct value
 	XH.rested = GetXPExhaustion() or 0  -- XP till Exhaustion
 	XH.restedPC = (XH.rested / UnitXPMax("player")) * 100
-	XH.xpNow = UnitXP( "player" )
-	-- print(string.format("Rested @%d: %s (%0.2f%%)",time(),XH.rested, XH.restedPC))
 end
 -- function XH.COMBAT_LOG_EVENT_UNFILTERED( )
 -- 	local ets, subEvent, _, sourceID, sourceName, sourceFlags, sourceRaidFlags,
@@ -80,8 +76,8 @@ end
 -- 	-- end
 -- end
 function XH.PLAYER_LEVEL_UP()
-	-- XH.bestTime = 0
-	-- XH.lastUpdate = XH.lastUpdate + 5
+	XH.bestTime = 0
+	XH.lastUpdate = XH.lastUpdate + 5
 end
 function XH.OnUpdate()  -- use XH_ since it is referenced outside of this file (before the XH. is created)
 	if (time() < XH.lastUpdate + 1) then	-- short cut out
@@ -309,7 +305,6 @@ function XH.SecondsToTime(secsIn)
 	secsIn = secsIn - (XH.tempVars.day * 86400)
 	XH.tempVars.hour = math.floor(secsIn / 3600)
 	if (XH.tempVars.day > 0) then
-		print( string.format("%s Day"), XH.tempVars.day )
 		return string.format("%i Day %i Hour", tonumber(XH.tempVars.day), tonumber(XH.tempVars.hour))
 	end
 	secsIn = secsIn - (XH.tempVars.hour * 3600);
@@ -341,5 +336,4 @@ function XH.PruneData()
 			XH_Gains[playerPlug] = nil
 		end
 	end
-
 end

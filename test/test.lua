@@ -332,6 +332,15 @@ function test.test_OnUpdate_sets_XH_Text_withGained_Normal()
 	assertEquals( 14, XH.tempVars.sec, "sec should be 14" )
 	assertEquals( 1.335, XH.xps, "xps should be 1.335" )
 end
-
+function test.test_PLAYER_LEVEL_UP_resets_bestTime()
+	XH.bestTime = 6272387642
+	XH.PLAYER_LEVEL_UP()
+	assertEquals( 0, XH.bestTime )
+end
+function test.test_PLAYER_LEVEL_UP_sets_lastUpdate_inFuture()
+	XH.lastUpdate = 3245
+	XH.PLAYER_LEVEL_UP()
+	assertEquals( 3250, XH.lastUpdate )
+end
 
 test.run()
