@@ -1,4 +1,6 @@
 .svn
-*.sublime*
+.DS_Store
 
 target/
+
+*.sublime*

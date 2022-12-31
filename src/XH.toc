@@ -1,14 +1,13 @@
-## Interface: @INTERFACE@
 ## Title: XH
-## Notes: XP/hour and time to lvl tracker.  Includes a dungeon timer.
+## Interface: @INTERFACE@
+## Notes: XP/hour and time to lvl tracker.  Includes a dungeon timer. (@VERSION@)
 ## Author: sistersally of hyjal
 ## Version: @VERSION@
 ## Description: Slash command function to output XP/Hour
-## SavedVariables: XH_options XH_instanceBestTimes XH_bosses
-## SavedVariablesPerCharacter: XH_instanceTimes XH_playedByLevel XH_zoneTracker XH_bubbleReport
-localization.lua
-localization.fr.lua
+## SavedVariables: XH_options XH_Gains
+## SavedVariablesPerCharacter: XH_playedByLevel
 
-XH_data.lua
 XH.lua
+XHUI.lua
+XH_options.lua
 XH.xml

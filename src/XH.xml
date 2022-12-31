@@ -9,20 +9,6 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 		<Anchors>
 			<Anchor point="TOP" />
 		</Anchors>
-		<Backdrop edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
-		<!--
-		<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
-		-->
-			<BackgroundInsets>
-				<AbsInset left="5" right="5" top="5" bottom="5"/>
-			</BackgroundInsets>
-			<TileSize>
-				<AbsValue val="16"/>
-			</TileSize>
-			<EdgeSize>
-				<AbsValue val="16"/>
-			</EdgeSize>
-		</Backdrop>
 
 		<Frames>
 			<Button name="XHButton">
@@ -38,7 +24,7 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 				</Anchors>
 				<Layers>
 					<Layer level="OVERLAY">
-						<FontString name="XH_Text" inherits="GameFontNormalSmall" wraponspaces="true">
+						<FontString name="XH_Text" inherits="GameFontNormalSmall">
 							<Anchors>
 								<Anchor point="CENTER">
 									<Offset>
@@ -50,7 +36,7 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 						</FontString>
 					</Layer>
 					<Layer level="OVERLAY">
-						<FontString name="XH_RepText" inherits="GameFontNormalSmall" font="Fonts\ARIALN.TTF" fontHeight="16" >
+						<FontString name="XH_RepText" inherits="GameFontNormalSmall" font="Fonts\ARIALN.TTF">
 							<Anchors>
 								<Anchor point="CENTER">
 									<Offset>
@@ -65,7 +51,7 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 						</FontString>
 					</Layer>
 					<Layer level="OVERLAY">
-						<FontString name="XH_InstanceText" inherits="GameFontNormalSmall" wraponspaces="true">
+						<FontString name="XH_InstanceText" inherits="GameFontNormalSmall">
 							<Anchors>
 								<Anchor point="CENTER">
 									<Offset>
@@ -77,7 +63,7 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 						</FontString>
 					</Layer>
 					<Layer level="OVERLAY">
-						<FontString name="XH_SkillText" inherits="GameFontNormalSmall" wraponspaces="true">
+						<FontString name="XH_SkillText" inherits="GameFontNormalSmall">
 							<Anchors>
 								<Anchor point="CENTER">
 									<Offset>
@@ -88,19 +74,6 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 							<Color r="1" g="1" b="1" />
 						</FontString>
 					</Layer>
-					<!---
-					<Layer level="BACKGROUND">
-						<FontString name="XH_LocText" inherits="GameFontNormal" wraponspaces="true">
-							<Anchors>
-								<Anchor point="CENTER">
-									<Offset>
-										<AbsDimension x="0" y="-35"/>
-									</Offset>
-								</Anchor>
-							</Anchors>
-						</FontString>
-					</Layer>
-					-->
 				</Layers>
 			</Button>
 
@@ -259,20 +232,22 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 		</Frames>
 		<Scripts>
 			<OnLoad>
-				XH_OnLoad();
+				XH.OnLoad()
 			</OnLoad>
+			<OnUpdate>
+				XH["OnUpdate"]( elapsed )
+			</OnUpdate>
+			<OnEvent>
+				XH[event]( ... )
+			</OnEvent>
+
 			<OnMouseDown>
 				XH_OnDragStart();
 			</OnMouseDown>
 			<OnMouseUp>
 				XH_OnDragStop();
 			</OnMouseUp>
-			<OnUpdate>
-				XH_OnUpdate(arg1);
-			</OnUpdate>
-			<OnEvent>
-				XH_OnEvent(event, ...);
-			</OnEvent>
+
 			<OnEnter>
 				XH_OnEnter();
 			</OnEnter>
@@ -286,19 +261,6 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 		<Anchors>
 			<Anchor point="CENTER" />
 		</Anchors>
-		<Backdrop edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
-			<BackgroundInsets>
-				<AbsInset left="5" right="5" top="5" bottom="5"/>
-			</BackgroundInsets>
-			<TileSize>
-				<AbsValue val="16"/>
-			</TileSize>
-			<EdgeSize>
-				<AbsValue val="16"/>
-			</EdgeSize>
-		</Backdrop>
-		
 	</Frame>
 	<GameTooltip name="XHTooltip" inherits="GameTooltipTemplate" parent="UIParent" hidden="true"/>
 </Ui>
-
