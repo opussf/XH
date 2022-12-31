@@ -1,28 +1,16 @@
 Welcome to XH v@VERSION@
 
 This addon will keep track of your XP per Hour gained while playing World of Warcraft.
-Rate is measured in time per bubble and the inverse, bubbles per hour.
+Rate is measured in xp per second.
 It will try to guess when you will reach the next level.
 
-The commands:
-/xh                -> Shows the help commands
-/xh help           -> Shows the help commands
-/xh start          -> Restart the system (resets the clock and the XP counter)
-/xh party          -> sets reporting to party chat.  (defaults to off)
-/xh guild          -> sets reporting to guild chat.  (defaults to off)
-/xh none	       -> turns off all reporting.
-/xh rep            -> Shows a rep gained report for this session
-/xh times          -> Shows instance times
-/xh times <search> -> Shows instance times with a search
-/xh reset          -> Resets instance timer (you will need to rezone to restart the recording)
-/xh status         -> Shows status info
-/xh update #       -> Sets delay for update.
-/xh showskill #    -> Sets skill bar vanish in # seconds (set to 0 to turn off)
-/xh list           -> lists instance names and number of runs
-/xh list <search>  -> lists instance runs for that instance, shows start timestamp, and run time, with statistics
-/xh rm <timestamp> -> removes the instance run that started at that timestamp.  use /xh list <search> to find timestamps
 
 Revision History
+3.0     U- Almost full rewrite of system. Got rid of the instance timer. Timers are for Mythics.
+           Removed all the commands.  Not even a slash command for now.
+           Skill bar has not been working for a while, removed the code.
+           Data structure for each character is saved, and pruned when data is expired.
+2.01    F- Moved to git
 1.24    F- Removed the Taxi TImer code to new addon - FlightTimer
 1.23    F- Adding moving time limit rate
         F- Adding moving limit to Reputation

@@ -7,9 +7,9 @@ function XH.InitBars()
 -- 	XH_InstanceTimerBack:SetMinMaxValues( 0, 1 );
 -- 	XH_InstanceTimerBack:SetValue( 1 );
 
--- 	-- SkillBars
--- 	XH_SkillBar:Hide()
--- 	XH_SkillBarCD:Hide()
+	-- SkillBars
+	XH_SkillBar:Hide()
+	XH_SkillBarCD:Hide()
 end
 -- Enter function, will be ran on mouseover.
 function XH_OnEnter()
