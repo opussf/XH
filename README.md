@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/opussf/XH.svg?branch=master)](https://travis-ci.org/opussf/XH)
+![master branch](https://github.com/opussf/XH/actions/workflows/normal_test/badge.svg?branch=master)
 
 # XH
-eXperience per Hour
+

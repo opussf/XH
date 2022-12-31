@@ -1,0 +1,31 @@
+
+ ┌─────────────────────────────────────────────────────────┐
+ │             Rested / XP / time / Frame rate             │◀───┐
+ ├─────────────────────────────────────────────────────────┤    │
+ │                  XP graph / kill count                  │◀─┐ │
+ └─────────────────────────────────────────────────────────┘  │ │
+                                                              │ │
+                                                              │ │
+ ┌─────────────────────────────────────────────────────────┐  │ │
+ │Graph of XP gain when less than max level.               │  │ │
+ │Use color to show type of XP gain (dungeon / other).     │  │ │
+ │Text: graph Count (MaxRate)                              │  │ │
+ │                                                         │  │ │
+ │Use bar to show xp rate of max.                          │  │ │
+ │Store max as character variable.                         │  │ │
+ │Never reset max.                                         │──┘ │
+ │                                                         │    │
+ │Max level chars:                                         │    │
+ │Use graph to show kills                                  │    │
+ │Use bar to show ????                                     │    │
+ │                                                         │    │
+ └─────────────────────────────────────────────────────────┘    │
+ ┌───────────────────────────────────────────────────────────┐  │
+ │Rested Bar                                                 │  │
+ │Bar: Show %Rested                                          │  │
+ │Text: Time till lvl, lvl@ time, (best lvl@ time) XP/s      │  │
+ │                                                           │──┘
+ │Mouse over or no data:                                     │
+ │Text: XP gain (bubble count) Time FPS                      │
+ │                                                           │
+ └───────────────────────────────────────────────────────────┘

@@ -1,101 +1,168 @@
 <project name="XH" default="package">
+	<!-- version 7.1 -->
 
-	<patternset id="addon.files">
-		<include name="src/*.lua"/>
-		<include name="src/*.toc"/>
+	<tstamp/>
+	<property file="build.properties"/>
+	<property environment="env"/>
+	<property name="env.BUILD_NUMBER" value=""/>
+	<property name="build.number" value=""/>
+	<property name="addon.dir" location="${ADDONLOC}/${ant.project.name}"/>
+	<!--  Pull git repo info -->
+	<!-- Get the last tag reachable from this branch -->
+	<exec executable="git" dir="." outputproperty="git.tag" failifexecutionfails="false" errorproperty="">
+		<arg line="describe --tags --abbrev=0" />
+	</exec>
+	<!-- Get a 'revision' based on last tag, commit count, commitsha, and branch name -->
+	<exec executable="git" dir="." outputproperty="git.revision" failifexecutionfails="false" errorproperty="">
+		<arg line="describe --tags --always HEAD" />
+	</exec>
+	<condition property="repository.version" value="${git.revision}" else="unknown">
+		<and>
+			<isset property="git.revision"/>
+			<length string="${git.revision}" trim="yes" length="0" when="greater"/>
+		</and>
+	</condition>
+	<!-- find gitbranch -->
+	<!-- find gitbranch -->
+	<exec executable="git" dir="." outputproperty="git.branch.tmp" failifexecutionfails="false" errorproperty="">
+		<arg line="rev-parse --abbrev-ref HEAD"/>
+	</exec>
+	<!-- replace '/' in branch name with '_' -->
+	<loadresource property="git.branch">
+		<propertyresource name="git.branch.tmp"/>
+		<filterchain>
+			<tokenfilter>
+				<replacestring from="/" to="_"/>
+			</tokenfilter>
+		</filterchain>
+	</loadresource>
+	<!-- assign the git.branch to the branch property -->
+	<condition property="branch" value="-${git.branch}" else="">
+		<and>
+			<isset property="git.branch"/>
+			<not>
+				<or>
+					<equals arg1="${git.branch}" arg2="master"/>
+					<equals arg1="${git.branch}" arg2="HEAD"/>
+				</or>
+			</not>
+		</and>
+	</condition>
+
+	<property name="version.number" value="${repository.version}${branch}${build.number}"/>
+	<echo>Building: ${version.number}</echo>
+	<!-- end git repo info -->
+
+	<property name="project.zip" value="${ant.project.name}_${version.number}.zip"/>
+	<property name="test.dir" location="test"/>
+
+	<property name="target.dir" location="target"/>
+	<property name="working.dir" location="${target.dir}/working"/>
+	<property name="report.dir" location="${target.dir}/reports"/>
+
+	<condition property="test.check">
+		<available file="${test.dir}/test.lua" type="file"/>
+	</condition>
+
+	<filter token="VERSION" value="${version.number}"/>
+	<filter token="INTERFACE" value="${INTERFACE}"/>
+
+	<patternset id="packageFiles">
 		<include name="src/*.xml"/>
+		<include name="src/*.toc"/>
+		<include name="src/*.lua"/>
 		<include name="src/Readme.txt"/>
+		<include name="src/HowTo.md"/>
+		<include name="${working.dir}/*.txt"/>
 	</patternset>
 
-	<target name="init">
-		<tstamp/>
-		<property environment="env"/>
-		<property name="build.number" value="${env.BUILD_NUMBER}"/>
-		<property file="build.properties"/>
-		<property name="XH.zip" value="XH_${XH.version}_${build.number}.zip"/>
-	</target>
-
+<!-- -->
 	<target name="clean" description="Cleans old builds">
-		<delete dir="build" verbose="true"/>
-		<delete dir="dest" verbose="true"/>
+		<delete dir="target" verbose="true"/>
 	</target>
 
-	<target name="package" depends="init">
-		<mkdir	dir="build/XH"/>
-		<mkdir	dir="dest"/>
-		<copy 	todir="build/XH" flatten="true">
+	<target name="changelog" description="Creates a changelog">
+		<mkdir dir="${working.dir}"/>
+		<echo file="${working.dir}/changelog.txt">Changes since ${git.tag}..${line.separator}${line.separator}</echo>
+		<exec executable="git" dir=".">
+			<arg line="log --graph --pretty=format:'%h %ci - %d %s &lt;%an&gt;' ${git.tag}~1.."/>
+			<redirector append="true" output="${working.dir}/changelog.txt"/>
+		</exec>
+	</target>
+
+	<target name="package" depends="changelog, test" description="Create a deploy package">
+		<property name="package.dir" location="${working.dir}/${ant.project.name}"/>
+		<delete dir="${package.dir}" verbose="false"/>
+		<copy	todir="${package.dir}" filtering="true" flatten="true">
 			<fileset dir=".">
-				<patternset refid="addon.files"/>
+				<patternset refid="packageFiles"/>
 			</fileset>
-			<filterset>
-				<filter token="VERSION" value="${XH.version} (${build.number})"/>
-			</filterset>
 		</copy>
-		<zip 	destfile="dest/${XH.zip}"
-				basedir="build"
-				includes="XH/**"/>
-		<delete dir="build" verbose="true"/>
+		<zip 	destfile="${target.dir}/${project.zip}"
+				basedir="${working.dir}"
+				includes="${ant.project.name}/**"/>
+		<checksum file="${target.dir}/${project.zip}"
+				  property="zip.md5" />
+		<echo file="${target.dir}/${project.zip}.md5">${zip.md5} ${project.zip}${line.separator}</echo>
 	</target>
-	
+
 	<target name="web.deploy" description="deploys the web site">
-		<mkdir	dir="dest/web"/>
-		<zip	destfile="dest/web/XHweb.zip"
-				basedir="site"
+		<mkdir	dir="${target.dir}/web"/>
+		<zip	destfile="${target.dir}/${ant.project.name}-web.zip"
+				basedir="src/web"
 				includes="**"/>
-		<delete verbose="true">
-			<fileset dir="${deploy.dir}">
-				<patternset id="web.files">
-					<include name="*.jpg"/>
-					<include name="*.gif"/>
-					<include name="*.png"/>
-					<include name="*.php"/>
-					<include name="*.css"/>
-					<include name="*.xsl"/>
-				</patternset>
-			</fileset>
+
+		<exec executable="rsync" dir="src/web" failonerror="true">
+			<arg line='-rvihz --rsh="/usr/bin/ssh -l ${USER} -p 2022" . ${USER}@${HOST}:${DIR}'/>
+		</exec>
+	<!--		<delete dir="${target.dir}/web" verbose="true"/>   -->
+	</target>
+
+	<target name="wow" depends="test" description="copy files to currnet wow install">
+		<mkdir dir="${addon.dir}"/>
+		<delete>
+			<fileset dir="${addon.dir}" includes="*.toc"/>
 		</delete>
-		<copy todir="${deploy.dir}" verbose="true">
-			<fileset dir="site">
-				<patternset refid="web.files"/>
-			</fileset>
-		</copy>
-	</target>
-
-	<target name="deploy" depends="deploy.check" description="deploys the file" if="deploy.run">
-		<copy todir="${deploy.dir}">
-			<fileset dir="${deploy.from}">
-				<include name="*.zip"/>
-			</fileset>
-		</copy>
-	</target>
-
-	<target name="deploy.check">
-		<condition property="deploy.run">
-			<and>
-				<available file="${deploy.from}" type="dir"/>
-				<available file="${deploy.dir}" type="dir"/>
-			</and>
-		</condition>
-	</target>
-
-	<target name="test" description="copy files directly to WoW for testing">
-		<property name="interface.dir" value="/Applications/World of Warcraft/Interface/AddOns/"/>
-		<property name="test.dir" value="${interface.dir}/${ant.project.name}"/>
-		
-		<mkdir 	dir="${test.dir}"/>
-		<copy 	todir="${test.dir}" verbose="true">
+		<copy todir="${addon.dir}" filtering="true" verbose="true">
 			<fileset dir="src">
 				<include name="*.lua"/>
 				<include name="*.toc"/>
 				<include name="*.xml"/>
 				<include name="Readme.txt"/>
+				<include name="HowTo.md"/>
 			</fileset>
-			<filterset>
-				<filter token="VERSION" value="${version.number}"/>
-			</filterset>
 		</copy>
-		<copy	tofile="backupdata/XH.saved"
-			file="/Applications/World of Warcraft/WTF/Account/OPUSSF/SavedVariables/XH.lua"/>
+		<echo>Deployed ${version.number} locally</echo>
 	</target>
 
+	<target name="open" description="open the addon dir in the current wow install">
+		<exec executable="open">
+			<arg value="${addon.dir}"/>
+		</exec>
+	</target>
+
+	<target name="test" description="run unit tests" if="test.check">
+		<mkdir  dir="${report.dir}"/>
+		<exec executable="lua" dir="test" resultproperty="testResult">
+			<arg value="test.lua"/>
+		</exec>
+		<move todir="${report.dir}" file="${test.dir}/testOut.xml"/>
+		<fail message="The tests failed. Please see the output for details." status="${testResult}">
+			<condition>
+				<not>
+					<equals arg1="${testResult}" arg2="0"/>
+				</not>
+			</condition>
+		</fail>
+	</target>
+
+	<target name="curse" depends="package" description="Copy files to the local curseforge path">
+		<property name="curse.dir" location="${ant.project.name}-cf"/>
+		<copy todir="${curse.dir}">
+			<fileset dir="${package.dir}"/>
+		</copy>
+		<exec executable="git" dir="${curse.dir}" failifexecutionfails="true" errorproperty="">
+			<arg line="status" />
+		</exec>
+	</target>
 </project>
