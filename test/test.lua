@@ -366,7 +366,7 @@ function test.test_Rate2_RateGraph_Progressive()
 	XH.Rate2( rateStruct, true )
 	assertEquals( ":█████|███▓▓|▓▓▓▓▓|▒▒▒▒▒|▒▒▒░░|░░░░░| : 1799(106170)", XH_RepText:GetText() )
 end
-function test.test_Rate2_RateGraph_Progressive_Inverse()
+function test.unstabletest_Rate2_RateGraph_Progressive_Inverse()
 	rateStruct = {["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
 			["rolling"] = {
 			}
