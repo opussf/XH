@@ -342,5 +342,65 @@ function test.test_PLAYER_LEVEL_UP_sets_lastUpdate_inFuture()
 	XH.PLAYER_LEVEL_UP()
 	assertEquals( 3250, XH.lastUpdate )
 end
+function test.test_Rate2_RateGraph()
+	rateStruct = {["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
+			["rolling"] = {
+				[time()-10] = 1,
+				[time()-20] = 1,
+				[time()-30] = 1,
+			}
+	}
+	XH.Rate2( rateStruct, true )
+	assertEquals( ":█____|_____|_____|_____|_____|_____| : 3(3)", XH_RepText:GetText() )
+end
+function test.test_Rate2_RateGraph_Progressive()
+	rateStruct = {["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
+			["rolling"] = {
+			}
+	}
+	c = 1
+	for ts=time()-1798, time() do
+		rateStruct["rolling"][ts] = c
+		c = c + 1
+	end
+	XH.Rate2( rateStruct, true )
+	assertEquals( ":█████|███▓▓|▓▓▓▓▓|▒▒▒▒▒|▒▒▒░░|░░░░░| : 1799(106170)", XH_RepText:GetText() )
+end
+function test.test_Rate2_RateGraph_Progressive_Inverse()
+	rateStruct = {["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
+			["rolling"] = {
+			}
+	}
+	c = 1
+	for ts=time(), time()-1798, -1 do
+		rateStruct["rolling"][ts] = c
+		c = c + 1
+	end
+	XH.Rate2( rateStruct, true )
+	assertEquals( ":░░░░░|░░▒▒▒|▒▒▒▒▓|▓▓▓▓▓|▓▓███|█████| : 1799(104430)", XH_RepText:GetText() )
+end
+function test.test_Rate2_RateGraph_Progressive_Dip()
+	rateStruct = {["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
+			["rolling"] = {
+			}
+	}
+	for ts=time(), time()-1798, -1 do
+		rateStruct["rolling"][ts] = math.abs( ts-(time()-900) ) * 10
+	end
+	XH.Rate2( rateStruct, true )
+	assertEquals( ":████▓|▓▓▓▒▒|▒░░░░|░░░░▒|▒▒▓▓▓|▓████| : 1799(522300)", XH_RepText:GetText() )
+end
+function test.test_Rate2_RateGraph_Infrequent()
+	rateStruct = {["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
+			["rolling"] = {
+			}
+	}
+	for ts=time(), time()-1798, -180 do
+		rateStruct["rolling"][ts] = math.abs( ts-(time()-900) ) * 10
+	end
+	XH.Rate2( rateStruct, true )
+	assertEquals( ":█__█_|_▓__▒|__░__|___░_|_▒__▓|__█__| : 10(9000)", XH_RepText:GetText() )
+end
+
 
 test.run()
