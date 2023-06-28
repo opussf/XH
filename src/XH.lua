@@ -54,7 +54,7 @@ function XH.VARIABLES_LOADED()
 	XH.PruneData()
 	if not XH_Gains[XH.playerSlug] then
 		XH_Gains[XH.playerSlug] = {
-			["xp_session"] = XH.InitRate( 0, UnitXPMax("player") - UnitXP("player") ),
+			["session"] = XH.InitRate( 0, UnitXPMax("player") - UnitXP("player") ),
 			--["xp_instance"] = XH.InitRate( 0, UnitXPMax("player") - UnitXP("player") ),
 			--["kills_session"] = {},
 			--["kills_instance"] = {}
@@ -73,6 +73,7 @@ function XH.COMBAT_LOG_EVENT_UNFILTERED( )
 			destID, destName, destFlags, _, spellID, spName, _, ext1, ext2, ext3 = CombatLogGetCurrentEventInfo()
 	if( subEvent and subEvent == "PARTY_KILL") then
 		print( ets, subEvent, sourceName, destName )
+
 		--XH.me[rolling]
 
 		-- gainStruct.rolling[now] = ( gainStruct.rolling[now] and gainStruct.rolling[now] + XH.xpGain )
@@ -168,11 +169,12 @@ function XH.InitRate( gainedValue, toGo )
 			["lastGained"] = gainedValue,
 			["toGo"] = toGo,
 			["rolling"] = {[time()] = gainedValue},
+			["kills"] = {[time()] = 0},
 	}
 end
 
 function XH.UpdateXPBarText(self)
-	XH.xps, XH.timeToGo, XH.gained = XH.Rate2( XH.me.xp_session )
+	XH.xps, XH.timeToGo, XH.gained = XH.Rate2( XH.me.session )
 
 	if (XH.gained) and (XH.gained > 0) and (not XH.mouseOver) then
 		--XH.xps, XH.timeToGo = XH.Rate( XH_XPGains.session );
@@ -190,9 +192,9 @@ function XH.UpdateXPBarText(self)
 				XH.xps)
 	else
 		XH.Text = SecondsToTime(XH.lastUpdate - XH.startedTime, false, false, 5)  -- use the built in function
-		if (XH.me.xp_session.gained and XH.me.xp_session.gained> 0) then
+		if (XH.me.session.gained and XH.me.session.gained> 0) then
 			XH.Text = format("%s xp in %s (%0.1f FPS)",
-					XH.me.xp_session.gained, XH.Text, GetFramerate())
+					XH.me.session.gained, XH.Text, GetFramerate())
 		else
 			XH.Text = format("%s (%0.1f FPS)", XH.Text, GetFramerate())
 		end
