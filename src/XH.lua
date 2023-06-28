@@ -29,7 +29,7 @@ function XH.OnLoad()
 	XHFrame:RegisterEvent( "VARIABLES_LOADED" )
 	XHFrame:RegisterEvent( "UPDATE_EXHAUSTION" )
 	-- Do this later
-	-- XHFrame:RegisterEvent( "COMBAT_LOG_EVENT_UNFILTERED" )
+	XHFrame:RegisterEvent( "COMBAT_LOG_EVENT_UNFILTERED" )
 
 	XHFrame:RegisterEvent( "PLAYER_LEVEL_UP" )
 	ChatFrame_AddMessageEventFilter("CHAT_MSG_COMBAT_XP_GAIN", XH.XPGainEvent)
@@ -68,13 +68,17 @@ function XH.UPDATE_EXHAUSTION() -- @TODO: Also call this for PLAYER_ENTERING_WOR
 	XH.rested = GetXPExhaustion() or 0  -- XP till Exhaustion
 	XH.restedPC = (XH.rested / UnitXPMax("player")) * 100
 end
--- function XH.COMBAT_LOG_EVENT_UNFILTERED( )
--- 	local ets, subEvent, _, sourceID, sourceName, sourceFlags, sourceRaidFlags,
--- 			destID, destName, destFlags, _, spellID, spName, _, ext1, ext2, ext3 = CombatLogGetCurrentEventInfo()
--- 	-- if( subEvent and subEvent == "PARTY_KILL") then
--- 	-- 	print( ets, subEvent, sourceName, destName )
--- 	-- end
--- end
+function XH.COMBAT_LOG_EVENT_UNFILTERED( )
+	local ets, subEvent, _, sourceID, sourceName, sourceFlags, sourceRaidFlags,
+			destID, destName, destFlags, _, spellID, spName, _, ext1, ext2, ext3 = CombatLogGetCurrentEventInfo()
+	if( subEvent and subEvent == "PARTY_KILL") then
+		print( ets, subEvent, sourceName, destName )
+		--XH.me[rolling]
+
+		-- gainStruct.rolling[now] = ( gainStruct.rolling[now] and gainStruct.rolling[now] + XH.xpGain )
+		-- 			or tonumber(XH.xpGain)
+	end
+end
 function XH.PLAYER_LEVEL_UP()
 	XH.bestTime = 0
 	XH.lastUpdate = XH.lastUpdate + 5
