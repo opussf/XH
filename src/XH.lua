@@ -15,7 +15,7 @@ COLOR_GOLD = "|cffcfb52b"
 COLOR_NEON_BLUE = "|cff4d4dff"
 COLOR_END = "|r"
 
-XH.rateGraph={[0]="_",[1]=".",[2]="·",[3]="-",[4]="^"};
+--XH.rateGraph={[0]="_",[1]=".",[2]="·",[3]="-",[4]="^"};
 XH.rateGraph={[0]="_",[1]="░",[2]="▒",[3]="▓",[4]="█"};
 
 XH.restedPC = 0  -- 0 - 150%  Used to update the rested bar
@@ -29,7 +29,7 @@ function XH.OnLoad()
 	XHFrame:RegisterEvent( "VARIABLES_LOADED" )
 	XHFrame:RegisterEvent( "UPDATE_EXHAUSTION" )
 	-- Do this later
-	-- XHFrame:RegisterEvent( "COMBAT_LOG_EVENT_UNFILTERED" )
+	XHFrame:RegisterEvent( "COMBAT_LOG_EVENT_UNFILTERED" )
 
 	XHFrame:RegisterEvent( "PLAYER_LEVEL_UP" )
 	ChatFrame_AddMessageEventFilter("CHAT_MSG_COMBAT_XP_GAIN", XH.XPGainEvent)
@@ -68,13 +68,17 @@ function XH.UPDATE_EXHAUSTION() -- @TODO: Also call this for PLAYER_ENTERING_WOR
 	XH.rested = GetXPExhaustion() or 0  -- XP till Exhaustion
 	XH.restedPC = (XH.rested / UnitXPMax("player")) * 100
 end
--- function XH.COMBAT_LOG_EVENT_UNFILTERED( )
--- 	local ets, subEvent, _, sourceID, sourceName, sourceFlags, sourceRaidFlags,
--- 			destID, destName, destFlags, _, spellID, spName, _, ext1, ext2, ext3 = CombatLogGetCurrentEventInfo()
--- 	-- if( subEvent and subEvent == "PARTY_KILL") then
--- 	-- 	print( ets, subEvent, sourceName, destName )
--- 	-- end
--- end
+function XH.COMBAT_LOG_EVENT_UNFILTERED( )
+	local ets, subEvent, _, sourceID, sourceName, sourceFlags, sourceRaidFlags,
+			destID, destName, destFlags, _, spellID, spName, _, ext1, ext2, ext3 = CombatLogGetCurrentEventInfo()
+	if( subEvent and subEvent == "PARTY_KILL") then
+		print( ets, subEvent, sourceName, destName )
+		--XH.me[rolling]
+
+		-- gainStruct.rolling[now] = ( gainStruct.rolling[now] and gainStruct.rolling[now] + XH.xpGain )
+		-- 			or tonumber(XH.xpGain)
+	end
+end
 function XH.PLAYER_LEVEL_UP()
 	XH.bestTime = 0
 	XH.lastUpdate = XH.lastUpdate + 5
@@ -208,7 +212,7 @@ function XH.UpdateXPBarText(self)
 	end
 	]]--
 end
-function XH.Rate2( rateStruct )
+function XH.Rate2( rateStruct, test )
 	-- returns rate/second, seconds till threshold, totalgained
 	local change = nil;
 	XH.rateMax = 0;
@@ -233,15 +237,14 @@ function XH.Rate2( rateStruct )
 				rateStruct.rolling[key] = nil;
 				change = true;
 			end
-
 		end
-		if (XH_options.showRateGraphs) and (XH.xpCount > 0) and (XH.xpSum > 0) and (time()%10 == 0) then
+		if (XH_options.showRateGraphs) and (XH.xpCount > 0) and (XH.xpSum > 0) and (time()%10 == 0 or test) then
 			-- Every 10 seconds if there is +data
 			local strOut = ":";
 			for key=0,((XH.timeRange/60)-1) do
 	--			strOut = strOut .. (XH.rateByMin[key] and '*' or XH.rateGraph[0]);
 				strOut = strOut .. (XH.rateByMin[key] and
-						(XH.rateGraph[ceil((XH.rateByMin[key] * 4)/max(XH.rateMax,1))]) or XH.rateGraph[0]);
+						(XH.rateGraph[math.ceil((XH.rateByMin[key] * 4)/max(XH.rateMax,1))]) or XH.rateGraph[0]);
 				if (key>0) and ((key+1)%5 == 0) then
 					strOut = strOut .. "|";
 				end
