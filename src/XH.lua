@@ -244,6 +244,11 @@ function XH.Rate2( rateStruct, test )
 				newKey = math.floor((time()-key)/60)
 				XH.rateByMin[newKey] = (XH.rateByMin[newKey] and XH.rateByMin[newKey] + val) or val
 				XH.rateMax = max(XH.rateMax, XH.rateByMin[newKey])
+
+				if ((key+XH.timeRange) <= time()) then
+					rateStruct.kills[key] = nil
+					change = true
+				end
 			end
 		end
 
