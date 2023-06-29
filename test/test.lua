@@ -486,6 +486,17 @@ function test.test_Rate2_RateGraph_Infrequent_kills()
 	XH.Rate2( rateStruct, true )
 	assertEquals( ":█__█_|_▓__▒|__░__|___░_|_▒__▓|__█__| : 10(9000)", XH_RepText:GetText() )
 end
-
+function test.test_Rate2_RateGraph_AlmostConstant_kills()
+	rateStruct = {["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
+			["rolling"] = {	}, ["kills"] = {},
+	}
+	for ts=time(), time()-1798, -90 do
+		rateStruct["kills"][ts] = 1
+	end
+	rateStruct["kills"][time()-10] = 10
+	rateStruct["kills"][time()-600] = 5
+	XH.Rate2( rateStruct, true )
+	assertEquals( ":█░_░░|_░░_░|▓_░░_|░░_░░|_░░_░|░_░░_| : 22(11)", XH_RepText:GetText() )
+end
 
 test.run()
