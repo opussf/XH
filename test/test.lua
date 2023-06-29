@@ -98,7 +98,11 @@ function test.test_VARIABLES_LOADED_MyData_rolling_isSet_noSavedData()
 	XH.VARIABLES_LOADED()
 	assertEquals( 0, XH.me.session.rolling[time()] )
 end
-function test.test_VARIABLES_LOADED_MyData_pruneOld()
+function test.test_VARIABLES_LOADED_MyData_kills_isSet_noSavedData()
+	XH.VARIABLES_LOADED()
+	assertEquals( 0, XH.me.session.kills[time()] )
+end
+function test.test_VARIABLES_LOADED_MyData_prune_old_xp()
 	XH_Gains = {
 		["testRealm-testPlayer"] = {
 			["session"] = {
@@ -107,12 +111,38 @@ function test.test_VARIABLES_LOADED_MyData_pruneOld()
 					[1] = 1,
 					[2] = 1,
 					[3] = 1,
-				}
+				},
+				["kills"] = {
+					[1] = 1,
+					[2] = 1,
+					[3] = 1,
+				},
 			}
 		}
 	}
 	XH.VARIABLES_LOADED()
 	assertEquals( 0, #XH.me.session.rolling )
+end
+function test.test_VARIABLES_LOADED_MyData_prune_old_kills()
+	XH_Gains = {
+		["testRealm-testPlayer"] = {
+			["session"] = {
+				["gained"] = 0,	["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
+				["rolling"] = {
+					[1] = 1,
+					[2] = 1,
+					[3] = 1,
+				},
+				["kills"] = {
+					[1] = 1,
+					[2] = 1,
+					[3] = 1,
+				}
+			}
+		}
+	}
+	XH.VARIABLES_LOADED()
+	assertEquals( 0, #XH.me.session.kills )
 end
 function test.test_VARIABLES_LOADED_MyData_gainedReset()
 	XH_Gains = {
@@ -120,6 +150,11 @@ function test.test_VARIABLES_LOADED_MyData_gainedReset()
 			["session"] = {
 				["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
 				["rolling"] = {
+					[1] = 1,
+					[2] = 1,
+					[3] = 1,
+				},
+				["kills"] = {
 					[1] = 1,
 					[2] = 1,
 					[3] = 1,
@@ -136,6 +171,11 @@ function test.test_VARIABLES_LOADED_OtherData_pruneOld()
 			["session"] = {
 				["gained"] = 0, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
 				["rolling"] = {
+					[1] = 1,
+					[2] = 1,
+					[3] = 1,
+				},
+				["kills"] = {
 					[1] = 1,
 					[2] = 1,
 					[3] = 1,
@@ -218,6 +258,11 @@ function test.test_XPGainEvent_sets_xpGain_withPrevious()
 					[time() - 10] = 1,
 					[time() - 20] = 1,
 					[time() - 30] = 1,
+				},
+				["kills"] = {
+					[time() - 10] = 1,
+					[time() - 20] = 1,
+					[time() - 30] = 1,
 				}
 			}
 		}
@@ -232,6 +277,11 @@ function test.test_XPGainEvent_sets_rolling_withPrevious()
 			["session"] = {
 				["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
 				["rolling"] = {
+					[time() - 10] = 1,
+					[time() - 20] = 1,
+					[time() - 30] = 1,
+				},
+				["kills"] = {
 					[time() - 10] = 1,
 					[time() - 20] = 1,
 					[time() - 30] = 1,
@@ -297,6 +347,11 @@ function test.test_OnUpdate_sets_XH_Text_withGained_mouseOver()
 					[time() - 10] = 1,
 					[time() - 20] = 1,
 					[time() - 30] = 1,
+				},
+				["kills"] = {
+					[time() - 10] = 1,
+					[time() - 20] = 1,
+					[time() - 30] = 1,
 				}
 			}
 		}
@@ -315,6 +370,11 @@ function test.test_OnUpdate_sets_XH_Text_withGained_Normal()
 			["session"] = {
 				["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
 				["rolling"] = {
+					[time() - 10] = 1,
+					[time() - 20] = 1,
+					[time() - 30] = 1,
+				},
+				["kills"] = {
 					[time() - 10] = 1,
 					[time() - 20] = 1,
 					[time() - 30] = 1,
@@ -397,6 +457,32 @@ function test.test_Rate2_RateGraph_Infrequent()
 	}
 	for ts=time(), time()-1798, -180 do
 		rateStruct["rolling"][ts] = math.abs( ts-(time()-900) ) * 10
+	end
+	XH.Rate2( rateStruct, true )
+	assertEquals( ":█__█_|_▓__▒|__░__|___░_|_▒__▓|__█__| : 10(9000)", XH_RepText:GetText() )
+end
+
+-- COMBAT_LOG_EVENT
+function test.test_COMBAT_LOG_EVENT_PARTY_KILL_keeps_count()
+	-- timestamp,event,hideCaster,srcGUID,srcName,srcFlags,srcFlags2,
+	--		targetGUID,targetName,targetFlags,targetFlags2,spellId = CombatLogGetCurrentEventInfo()
+	XH.VARIABLES_LOADED()
+	CombatLogCurrentEventInfo = {time(), "PARTY_KILL", "", "", "testRealm-testPlayer", 0, 0, "", "targetName", 0, 0, 0}
+	XH.COMBAT_LOG_EVENT_UNFILTERED()
+	XH.COMBAT_LOG_EVENT_UNFILTERED()
+	killSum = 0
+	for ts, v in pairs( XH.me.session.kills ) do
+		killSum = killSum + v
+		print(ts..":"..time())
+	end
+	assertEquals( 2, killSum )
+end
+function test.test_Rate2_RateGraph_Infrequent_kills()
+	rateStruct = {["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
+			["rolling"] = {	}, ["kills"] = {},
+	}
+	for ts=time(), time()-1798, -180 do
+		rateStruct["kills"][ts] = math.abs( ts-(time()-900) ) * 10
 	end
 	XH.Rate2( rateStruct, true )
 	assertEquals( ":█__█_|_▓__▒|__░__|___░_|_▒__▓|__█__| : 10(9000)", XH_RepText:GetText() )
