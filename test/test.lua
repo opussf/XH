@@ -76,50 +76,64 @@ function test.test_VARIABLES_LOADED_MyData_isSet()
 end
 function test.test_VARIABLES_LOADED_MyData_hasSessionTable()
 	XH.VARIABLES_LOADED()
-	assertTrue( XH.me.xp_session )
+	assertTrue( XH.me.session )
 end
 function test.test_VARIABLES_LOADED_MyData_gained_isSet_noSavedData()
 	XH.VARIABLES_LOADED()
-	assertEquals( 0, XH.me.xp_session.gained )
+	assertEquals( 0, XH.me.session.gained )
 end
 function test.test_VARIABLES_LOADED_MyData_start_isSet_noSavedData()
 	XH.VARIABLES_LOADED()
-	assertEquals( time(), XH.me.xp_session.start )
+	assertEquals( time(), XH.me.session.start )
 end
 function test.test_VARIABLES_LOADED_MyData_lastGained_isSet_noSavedData()
 	XH.VARIABLES_LOADED()
-	assertEquals( 0, XH.me.xp_session.lastGained )
+	assertEquals( 0, XH.me.session.lastGained )
 end
 function test.test_VARIABLES_LOADED_MyData_toGo_isSet_noSavedData()
 	XH.VARIABLES_LOADED()
-	assertEquals( 900, XH.me.xp_session.toGo ) -- test data
+	assertEquals( 900, XH.me.session.toGo ) -- test data
 end
 function test.test_VARIABLES_LOADED_MyData_rolling_isSet_noSavedData()
 	XH.VARIABLES_LOADED()
-	assertEquals( 0, XH.me.xp_session.rolling[time()] )
+	assertEquals( 0, XH.me.session.rolling[time()] )
 end
-function test.test_VARIABLES_LOADED_MyData_pruneOld()
+function test.test_VARIABLES_LOADED_MyData_kills_isSet_noSavedData()
+	XH.VARIABLES_LOADED()
+	assertEquals( 0, XH.me.session.kills[time()] )
+end
+function test.test_VARIABLES_LOADED_MyData_prune_old_xp()
 	XH_Gains = {
 		["testRealm-testPlayer"] = {
-			["xp_session"] = {
+			["session"] = {
 				["gained"] = 0,	["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
 				["rolling"] = {
 					[1] = 1,
 					[2] = 1,
 					[3] = 1,
-				}
+				},
+				["kills"] = {
+					[1] = 1,
+					[2] = 1,
+					[3] = 1,
+				},
 			}
 		}
 	}
 	XH.VARIABLES_LOADED()
-	assertEquals( 0, #XH.me.xp_session.rolling )
+	assertEquals( 0, #XH.me.session.rolling )
 end
-function test.test_VARIABLES_LOADED_MyData_gainedReset()
+function test.test_VARIABLES_LOADED_MyData_prune_old_kills()
 	XH_Gains = {
 		["testRealm-testPlayer"] = {
-			["xp_session"] = {
-				["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
+			["session"] = {
+				["gained"] = 0,	["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
 				["rolling"] = {
+					[1] = 1,
+					[2] = 1,
+					[3] = 1,
+				},
+				["kills"] = {
 					[1] = 1,
 					[2] = 1,
 					[3] = 1,
@@ -128,14 +142,40 @@ function test.test_VARIABLES_LOADED_MyData_gainedReset()
 		}
 	}
 	XH.VARIABLES_LOADED()
-	assertEquals( 0, XH.me.xp_session.gained )
+	assertEquals( 0, #XH.me.session.kills )
+end
+function test.test_VARIABLES_LOADED_MyData_gainedReset()
+	XH_Gains = {
+		["testRealm-testPlayer"] = {
+			["session"] = {
+				["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
+				["rolling"] = {
+					[1] = 1,
+					[2] = 1,
+					[3] = 1,
+				},
+				["kills"] = {
+					[1] = 1,
+					[2] = 1,
+					[3] = 1,
+				}
+			}
+		}
+	}
+	XH.VARIABLES_LOADED()
+	assertEquals( 0, XH.me.session.gained )
 end
 function test.test_VARIABLES_LOADED_OtherData_pruneOld()
 	XH_Gains = {
 		["otherRealm-otherPlayer"] = {
-			["xp_session"] = {
+			["session"] = {
 				["gained"] = 0, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
 				["rolling"] = {
+					[1] = 1,
+					[2] = 1,
+					[3] = 1,
+				},
+				["kills"] = {
 					[1] = 1,
 					[2] = 1,
 					[3] = 1,
@@ -191,30 +231,35 @@ end
 function test.test_XPGainEvent_sets_xpGainedStruct_gained()
 	XH.VARIABLES_LOADED()
 	XH.XPGainEvent( "Frame", "Event", "You gain 2400 experience." )
-	assertEquals( 2400, XH.me.xp_session.gained )
+	assertEquals( 2400, XH.me.session.gained )
 end
 function test.test_XPGainEvent_sets_xpGainedStruct_lastGained()
 	XH.VARIABLES_LOADED()
 	XH.XPGainEvent( "Frame", "Event", "You gain 1200 experience." )
-	assertEquals( "1200", XH.me.xp_session.lastGained )
+	assertEquals( "1200", XH.me.session.lastGained )
 end
 function test.test_XPGainEvent_sets_xpGainedStruct_toGo()
 	XH.VARIABLES_LOADED()
 	XH.XPGainEvent( "Frame", "Event", "You gain 1200 experience." )
-	assertEquals( 900, XH.me.xp_session.toGo )
+	assertEquals( 900, XH.me.session.toGo )
 end
 function test.test_XPGainEvent_sets_xpGainedStruct_rolling()
 	XH_Gains = {}
 	XH.VARIABLES_LOADED()
 	XH.XPGainEvent( "Frame", "Event", "You gain 2400 experience." )
-	assertEquals( 2400, XH.me.xp_session.rolling[time()] )
+	assertEquals( 2400, XH.me.session.rolling[time()] )
 end
 function test.test_XPGainEvent_sets_xpGain_withPrevious()
 	XH_Gains = {
 		["testRealm-testPlayer"] = {
-			["xp_session"] = {
+			["session"] = {
 				["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
 				["rolling"] = {
+					[time() - 10] = 1,
+					[time() - 20] = 1,
+					[time() - 30] = 1,
+				},
+				["kills"] = {
 					[time() - 10] = 1,
 					[time() - 20] = 1,
 					[time() - 30] = 1,
@@ -224,14 +269,19 @@ function test.test_XPGainEvent_sets_xpGain_withPrevious()
 	}
 	XH.VARIABLES_LOADED()
 	XH.XPGainEvent( "Frame", "Event", "You gain 2400 experience." )
-	assertEquals( 2400, XH.me.xp_session.gained )
+	assertEquals( 2400, XH.me.session.gained )
 end
 function test.test_XPGainEvent_sets_rolling_withPrevious()
 	XH_Gains = {
 		["testRealm-testPlayer"] = {
-			["xp_session"] = {
+			["session"] = {
 				["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
 				["rolling"] = {
+					[time() - 10] = 1,
+					[time() - 20] = 1,
+					[time() - 30] = 1,
+				},
+				["kills"] = {
 					[time() - 10] = 1,
 					[time() - 20] = 1,
 					[time() - 30] = 1,
@@ -241,7 +291,7 @@ function test.test_XPGainEvent_sets_rolling_withPrevious()
 	}
 	XH.VARIABLES_LOADED()
 	XH.XPGainEvent( "Frame", "Event", "You gain 2400 experience." )
-	assertEquals( 2400, XH.me.xp_session.rolling[time()] )
+	assertEquals( 2400, XH.me.session.rolling[time()] )
 end
 function test.test_OnEnter_Sets_mouseOver()
 	XH.VARIABLES_LOADED()
@@ -291,9 +341,14 @@ function test.test_OnUpdate_sets_XH_Text_withGained_mouseOver()
 	XH.lastUpdate = 0
 	XH_Gains = {
 		["testRealm-testPlayer"] = {
-			["xp_session"] = {
+			["session"] = {
 				["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
 				["rolling"] = {
+					[time() - 10] = 1,
+					[time() - 20] = 1,
+					[time() - 30] = 1,
+				},
+				["kills"] = {
 					[time() - 10] = 1,
 					[time() - 20] = 1,
 					[time() - 30] = 1,
@@ -312,9 +367,14 @@ function test.test_OnUpdate_sets_XH_Text_withGained_Normal()
 	XH.lastUpdate = 0
 	XH_Gains = {
 		["testRealm-testPlayer"] = {
-			["xp_session"] = {
+			["session"] = {
 				["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
 				["rolling"] = {
+					[time() - 10] = 1,
+					[time() - 20] = 1,
+					[time() - 30] = 1,
+				},
+				["kills"] = {
 					[time() - 10] = 1,
 					[time() - 20] = 1,
 					[time() - 30] = 1,
@@ -402,5 +462,41 @@ function test.test_Rate2_RateGraph_Infrequent()
 	assertEquals( ":█__█_|_▓__▒|__░__|___░_|_▒__▓|__█__| : 10(9000)", XH_RepText:GetText() )
 end
 
+-- COMBAT_LOG_EVENT
+function test.test_COMBAT_LOG_EVENT_PARTY_KILL_keeps_count()
+	-- timestamp,event,hideCaster,srcGUID,srcName,srcFlags,srcFlags2,
+	--		targetGUID,targetName,targetFlags,targetFlags2,spellId = CombatLogGetCurrentEventInfo()
+	XH.VARIABLES_LOADED()
+	CombatLogCurrentEventInfo = {time(), "PARTY_KILL", "", "", "testRealm-testPlayer", 0, 0, "", "targetName", 0, 0, 0}
+	XH.COMBAT_LOG_EVENT_UNFILTERED()
+	XH.COMBAT_LOG_EVENT_UNFILTERED()
+	killSum = 0
+	for ts, v in pairs( XH.me.session.kills ) do
+		killSum = killSum + v
+	end
+	assertEquals( 2, killSum )
+end
+function test.test_Rate2_RateGraph_Infrequent_kills()
+	rateStruct = {["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
+			["rolling"] = {	}, ["kills"] = {},
+	}
+	for ts=time(), time()-1798, -180 do
+		rateStruct["kills"][ts] = math.abs( ts-(time()-900) ) * 10
+	end
+	XH.Rate2( rateStruct, true )
+	assertEquals( ":█__█_|_▓__▒|__░__|___░_|_▒__▓|__█__| : 10(9000)", XH_RepText:GetText() )
+end
+function test.test_Rate2_RateGraph_AlmostConstant_kills()
+	rateStruct = {["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
+			["rolling"] = {	}, ["kills"] = {},
+	}
+	for ts=time(), time()-1798, -90 do
+		rateStruct["kills"][ts] = 1
+	end
+	rateStruct["kills"][time()-10] = 10
+	rateStruct["kills"][time()-600] = 5
+	XH.Rate2( rateStruct, true )
+	assertEquals( ":█░_░░|_░░_░|▓_░░_|░░_░░|_░░_░|░_░░_| : 22(11)", XH_RepText:GetText() )
+end
 
 test.run()
