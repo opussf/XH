@@ -473,7 +473,6 @@ function test.test_COMBAT_LOG_EVENT_PARTY_KILL_keeps_count()
 	killSum = 0
 	for ts, v in pairs( XH.me.session.kills ) do
 		killSum = killSum + v
-		print(ts..":"..time())
 	end
 	assertEquals( 2, killSum )
 end
