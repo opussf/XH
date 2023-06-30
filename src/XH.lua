@@ -262,7 +262,7 @@ function XH.Rate2( rateStruct, test )
 					strOut = strOut .. "|"
 				end
 			end
-			XH_RepText:SetText(strOut.." : "..(XH.xpCount>0 and XH.xpCount or XH.killCount).."("..XH.rateMax..")");
+			XH_RepText:SetText(strOut.." : "..(XH.xpSum>0 and XH.xpCount or XH.killCount).."("..XH.rateMax..")");
 			XH_RepText:Show();
 			--XH.Print(strOut.." : "..XH.xpCount.."("..XH.rateMax.."): "..XH.SecondsToTime( rateStruct.toGo/(XH.xpSum/XH.timeRange) ));
 		end
