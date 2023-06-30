@@ -145,7 +145,6 @@ function XH.XPGainEvent( frame, event, message, ... )
 	for counter, gainStruct in pairs(XH.me) do
 		if( gainStruct.gained ) then
 			gainStruct.gained = gainStruct.gained + XH.xpGain
-			gainStruct.lastGained  = XH.xpGain
 			gainStruct.toGo = UnitXPMax("player") - UnitXP("player")
 			local now = time()
 			gainStruct.rolling[now] = ( gainStruct.rolling[now] and gainStruct.rolling[now] + XH.xpGain )
@@ -160,7 +159,6 @@ function XH.InitRate( gainedValue, toGo )
 	return {
 			["gained"] = gainedValue,
 			["start"] = time(),
-			["lastGained"] = gainedValue,
 			["toGo"] = toGo,
 			["rolling"] = {[time()] = gainedValue},
 			["kills"] = {[time()] = 0},
@@ -264,7 +262,7 @@ function XH.Rate2( rateStruct, test )
 					strOut = strOut .. "|"
 				end
 			end
-			XH_RepText:SetText(strOut.." : "..(XH.xpCount>0 and XH.xpCount or XH.killCount).."("..XH.rateMax..")");
+			XH_RepText:SetText(strOut.." : "..(XH.xpSum>0 and XH.xpCount or XH.killCount).."("..XH.rateMax..")");
 			XH_RepText:Show();
 			--XH.Print(strOut.." : "..XH.xpCount.."("..XH.rateMax.."): "..XH.SecondsToTime( rateStruct.toGo/(XH.xpSum/XH.timeRange) ));
 		end

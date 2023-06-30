@@ -86,10 +86,6 @@ function test.test_VARIABLES_LOADED_MyData_start_isSet_noSavedData()
 	XH.VARIABLES_LOADED()
 	assertEquals( time(), XH.me.session.start )
 end
-function test.test_VARIABLES_LOADED_MyData_lastGained_isSet_noSavedData()
-	XH.VARIABLES_LOADED()
-	assertEquals( 0, XH.me.session.lastGained )
-end
 function test.test_VARIABLES_LOADED_MyData_toGo_isSet_noSavedData()
 	XH.VARIABLES_LOADED()
 	assertEquals( 900, XH.me.session.toGo ) -- test data
@@ -106,7 +102,7 @@ function test.test_VARIABLES_LOADED_MyData_prune_old_xp()
 	XH_Gains = {
 		["testRealm-testPlayer"] = {
 			["session"] = {
-				["gained"] = 0,	["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
+				["gained"] = 0,	["start"] = 0, ["toGo"] = 0,
 				["rolling"] = {
 					[1] = 1,
 					[2] = 1,
@@ -127,7 +123,7 @@ function test.test_VARIABLES_LOADED_MyData_prune_old_kills()
 	XH_Gains = {
 		["testRealm-testPlayer"] = {
 			["session"] = {
-				["gained"] = 0,	["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
+				["gained"] = 0,	["start"] = 0, ["toGo"] = 0,
 				["rolling"] = {
 					[1] = 1,
 					[2] = 1,
@@ -148,7 +144,7 @@ function test.test_VARIABLES_LOADED_MyData_gainedReset()
 	XH_Gains = {
 		["testRealm-testPlayer"] = {
 			["session"] = {
-				["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
+				["gained"] = 3, ["start"] = 0, ["toGo"] = 0,
 				["rolling"] = {
 					[1] = 1,
 					[2] = 1,
@@ -169,7 +165,7 @@ function test.test_VARIABLES_LOADED_OtherData_pruneOld()
 	XH_Gains = {
 		["otherRealm-otherPlayer"] = {
 			["session"] = {
-				["gained"] = 0, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
+				["gained"] = 0, ["start"] = 0, ["toGo"] = 0,
 				["rolling"] = {
 					[1] = 1,
 					[2] = 1,
@@ -233,11 +229,6 @@ function test.test_XPGainEvent_sets_xpGainedStruct_gained()
 	XH.XPGainEvent( "Frame", "Event", "You gain 2400 experience." )
 	assertEquals( 2400, XH.me.session.gained )
 end
-function test.test_XPGainEvent_sets_xpGainedStruct_lastGained()
-	XH.VARIABLES_LOADED()
-	XH.XPGainEvent( "Frame", "Event", "You gain 1200 experience." )
-	assertEquals( "1200", XH.me.session.lastGained )
-end
 function test.test_XPGainEvent_sets_xpGainedStruct_toGo()
 	XH.VARIABLES_LOADED()
 	XH.XPGainEvent( "Frame", "Event", "You gain 1200 experience." )
@@ -253,7 +244,7 @@ function test.test_XPGainEvent_sets_xpGain_withPrevious()
 	XH_Gains = {
 		["testRealm-testPlayer"] = {
 			["session"] = {
-				["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
+				["gained"] = 3, ["start"] = 0, ["toGo"] = 0,
 				["rolling"] = {
 					[time() - 10] = 1,
 					[time() - 20] = 1,
@@ -275,7 +266,7 @@ function test.test_XPGainEvent_sets_rolling_withPrevious()
 	XH_Gains = {
 		["testRealm-testPlayer"] = {
 			["session"] = {
-				["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
+				["gained"] = 3, ["start"] = 0, ["toGo"] = 0,
 				["rolling"] = {
 					[time() - 10] = 1,
 					[time() - 20] = 1,
@@ -342,7 +333,7 @@ function test.test_OnUpdate_sets_XH_Text_withGained_mouseOver()
 	XH_Gains = {
 		["testRealm-testPlayer"] = {
 			["session"] = {
-				["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
+				["gained"] = 3, ["start"] = 0, ["toGo"] = 0,
 				["rolling"] = {
 					[time() - 10] = 1,
 					[time() - 20] = 1,
@@ -368,7 +359,7 @@ function test.test_OnUpdate_sets_XH_Text_withGained_Normal()
 	XH_Gains = {
 		["testRealm-testPlayer"] = {
 			["session"] = {
-				["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
+				["gained"] = 3, ["start"] = 0, ["toGo"] = 0,
 				["rolling"] = {
 					[time() - 10] = 1,
 					[time() - 20] = 1,
@@ -403,7 +394,7 @@ function test.test_PLAYER_LEVEL_UP_sets_lastUpdate_inFuture()
 	assertEquals( 3250, XH.lastUpdate )
 end
 function test.test_Rate2_RateGraph()
-	rateStruct = {["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
+	rateStruct = {["gained"] = 3, ["start"] = 0, ["toGo"] = 0,
 			["rolling"] = {
 				[time()-10] = 1,
 				[time()-20] = 1,
@@ -414,7 +405,7 @@ function test.test_Rate2_RateGraph()
 	assertEquals( ":█____|_____|_____|_____|_____|_____| : 3(3)", XH_RepText:GetText() )
 end
 function test.test_Rate2_RateGraph_Progressive()
-	rateStruct = {["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
+	rateStruct = {["gained"] = 3, ["start"] = 0, ["toGo"] = 0,
 			["rolling"] = {
 			}
 	}
@@ -427,7 +418,7 @@ function test.test_Rate2_RateGraph_Progressive()
 	assertEquals( ":█████|███▓▓|▓▓▓▓▓|▒▒▒▒▒|▒▒▒░░|░░░░░| : 1799(106170)", XH_RepText:GetText() )
 end
 function test.unstabletest_Rate2_RateGraph_Progressive_Inverse()
-	rateStruct = {["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
+	rateStruct = {["gained"] = 3, ["start"] = 0, ["toGo"] = 0,
 			["rolling"] = {
 			}
 	}
@@ -440,7 +431,7 @@ function test.unstabletest_Rate2_RateGraph_Progressive_Inverse()
 	assertEquals( ":░░░░░|░░▒▒▒|▒▒▒▒▓|▓▓▓▓▓|▓▓███|█████| : 1799(104430)", XH_RepText:GetText() )
 end
 function test.test_Rate2_RateGraph_Progressive_Dip()
-	rateStruct = {["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
+	rateStruct = {["gained"] = 3, ["start"] = 0, ["toGo"] = 0,
 			["rolling"] = {
 			}
 	}
@@ -451,7 +442,7 @@ function test.test_Rate2_RateGraph_Progressive_Dip()
 	assertEquals( ":████▓|▓▓▓▒▒|▒░░░░|░░░░▒|▒▒▓▓▓|▓████| : 1799(522300)", XH_RepText:GetText() )
 end
 function test.test_Rate2_RateGraph_Infrequent()
-	rateStruct = {["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
+	rateStruct = {["gained"] = 3, ["start"] = 0, ["toGo"] = 0,
 			["rolling"] = {
 			}
 	}
@@ -477,7 +468,7 @@ function test.test_COMBAT_LOG_EVENT_PARTY_KILL_keeps_count()
 	assertEquals( 2, killSum )
 end
 function test.test_Rate2_RateGraph_Infrequent_kills()
-	rateStruct = {["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
+	rateStruct = {["gained"] = 3, ["start"] = 0, ["toGo"] = 0,
 			["rolling"] = {	}, ["kills"] = {},
 	}
 	for ts=time(), time()-1798, -180 do
@@ -487,7 +478,7 @@ function test.test_Rate2_RateGraph_Infrequent_kills()
 	assertEquals( ":█__█_|_▓__▒|__░__|___░_|_▒__▓|__█__| : 10(9000)", XH_RepText:GetText() )
 end
 function test.test_Rate2_RateGraph_AlmostConstant_kills()
-	rateStruct = {["gained"] = 3, ["start"] = 0, ["lastGained"] = 0, ["toGo"] = 0,
+	rateStruct = {["gained"] = 3, ["start"] = 0, ["toGo"] = 0,
 			["rolling"] = {	}, ["kills"] = {},
 	}
 	for ts=time(), time()-1798, -90 do
