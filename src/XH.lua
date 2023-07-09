@@ -15,7 +15,7 @@ COLOR_GOLD = "|cffcfb52b"
 COLOR_NEON_BLUE = "|cff4d4dff"
 COLOR_END = "|r"
 
-XH.rateGraph={[0]="_",[1]=".",[2]="·",[3]="-",[4]="^"};
+--XH.rateGraph={[0]="_",[1]=".",[2]="·",[3]="-",[4]="^"};
 XH.rateGraph={[0]="_",[1]="░",[2]="▒",[3]="▓",[4]="█"};
 
 XH.restedPC = 0  -- 0 - 150%  Used to update the rested bar
@@ -29,7 +29,7 @@ function XH.OnLoad()
 	XHFrame:RegisterEvent( "VARIABLES_LOADED" )
 	XHFrame:RegisterEvent( "UPDATE_EXHAUSTION" )
 	-- Do this later
-	-- XHFrame:RegisterEvent( "COMBAT_LOG_EVENT_UNFILTERED" )
+	XHFrame:RegisterEvent( "COMBAT_LOG_EVENT_UNFILTERED" )
 
 	XHFrame:RegisterEvent( "PLAYER_LEVEL_UP" )
 	ChatFrame_AddMessageEventFilter("CHAT_MSG_COMBAT_XP_GAIN", XH.XPGainEvent)
@@ -54,10 +54,7 @@ function XH.VARIABLES_LOADED()
 	XH.PruneData()
 	if not XH_Gains[XH.playerSlug] then
 		XH_Gains[XH.playerSlug] = {
-			["xp_session"] = XH.InitRate( 0, UnitXPMax("player") - UnitXP("player") ),
-			--["xp_instance"] = XH.InitRate( 0, UnitXPMax("player") - UnitXP("player") ),
-			--["kills_session"] = {},
-			--["kills_instance"] = {}
+			["session"] = XH.InitRate( 0, UnitXPMax("player") - UnitXP("player") ),
 		}
 	end
 
@@ -68,13 +65,15 @@ function XH.UPDATE_EXHAUSTION() -- @TODO: Also call this for PLAYER_ENTERING_WOR
 	XH.rested = GetXPExhaustion() or 0  -- XP till Exhaustion
 	XH.restedPC = (XH.rested / UnitXPMax("player")) * 100
 end
--- function XH.COMBAT_LOG_EVENT_UNFILTERED( )
--- 	local ets, subEvent, _, sourceID, sourceName, sourceFlags, sourceRaidFlags,
--- 			destID, destName, destFlags, _, spellID, spName, _, ext1, ext2, ext3 = CombatLogGetCurrentEventInfo()
--- 	-- if( subEvent and subEvent == "PARTY_KILL") then
--- 	-- 	print( ets, subEvent, sourceName, destName )
--- 	-- end
--- end
+function XH.COMBAT_LOG_EVENT_UNFILTERED( )
+	local ets, subEvent, _, sourceID, sourceName, sourceFlags, sourceRaidFlags,
+			destID, destName, destFlags, _, spellID, spName, _, ext1, ext2, ext3 = CombatLogGetCurrentEventInfo()
+	if( subEvent and subEvent == "PARTY_KILL") then
+		--print( ets, subEvent, sourceName, destName )
+		local now = time()
+		XH.me.session.kills[now] = ( XH.me.session.kills[now] and XH.me.session.kills[now] + 1 ) or 1
+	end
+end
 function XH.PLAYER_LEVEL_UP()
 	XH.bestTime = 0
 	XH.lastUpdate = XH.lastUpdate + 5
@@ -146,7 +145,6 @@ function XH.XPGainEvent( frame, event, message, ... )
 	for counter, gainStruct in pairs(XH.me) do
 		if( gainStruct.gained ) then
 			gainStruct.gained = gainStruct.gained + XH.xpGain
-			gainStruct.lastGained  = XH.xpGain
 			gainStruct.toGo = UnitXPMax("player") - UnitXP("player")
 			local now = time()
 			gainStruct.rolling[now] = ( gainStruct.rolling[now] and gainStruct.rolling[now] + XH.xpGain )
@@ -161,14 +159,16 @@ function XH.InitRate( gainedValue, toGo )
 	return {
 			["gained"] = gainedValue,
 			["start"] = time(),
-			["lastGained"] = gainedValue,
 			["toGo"] = toGo,
-			["rolling"] = {[time()] = gainedValue},
+			["rolling"] = {},
+			["kills"] = {},
 	}
 end
 
 function XH.UpdateXPBarText(self)
-	XH.xps, XH.timeToGo, XH.gained = XH.Rate2( XH.me.xp_session )
+	XH.xps, XH.timeToGo, XH.gained = XH.Rate2( XH.me.session )
+	--XH.kps, XH.ttg, XH.kills = XH.Rate2( XH.me.kills )
+	--print( XH.kps..":"..XH.ttg..":"..XH.kills )
 
 	if (XH.gained) and (XH.gained > 0) and (not XH.mouseOver) then
 		--XH.xps, XH.timeToGo = XH.Rate( XH_XPGains.session );
@@ -186,9 +186,9 @@ function XH.UpdateXPBarText(self)
 				XH.xps)
 	else
 		XH.Text = SecondsToTime(XH.lastUpdate - XH.startedTime, false, false, 5)  -- use the built in function
-		if (XH.me.xp_session.gained and XH.me.xp_session.gained> 0) then
+		if (XH.me.session.gained and XH.me.session.gained> 0) then
 			XH.Text = format("%s xp in %s (%0.1f FPS)",
-					XH.me.xp_session.gained, XH.Text, GetFramerate())
+					XH.me.session.gained, XH.Text, GetFramerate())
 		else
 			XH.Text = format("%s (%0.1f FPS)", XH.Text, GetFramerate())
 		end
@@ -208,45 +208,61 @@ function XH.UpdateXPBarText(self)
 	end
 	]]--
 end
-function XH.Rate2( rateStruct )
+function XH.Rate2( rateStruct, test )
 	-- returns rate/second, seconds till threshold, totalgained
 	local change = nil;
 	XH.rateMax = 0;
 	if rateStruct.gained then
-		XH.rateByMin={};
-		local newKey = 0;
+		XH.rateByMin={}
+		local newKey = 0
 		XH.xpSum = 0; XH.xpCount = 0;
-		XH.startTS, XH.mostRecentTS = time(), time()-XH.timeRange;
+		XH.startTS, XH.mostRecentTS = time(), time()-XH.timeRange
 		for key, val in pairs(rateStruct.rolling) do
-			XH.xpCount = XH.xpCount +1;
-			XH.startTS = min(XH.startTS, key);
-			XH.mostRecentTS = max(XH.mostRecentTS, key);
-			XH.xpSum = XH.xpSum + val;
+			XH.xpCount = XH.xpCount +1
+			XH.startTS = min(XH.startTS, key)
+			XH.mostRecentTS = max(XH.mostRecentTS, key)
+			XH.xpSum = XH.xpSum + val
 			--XH.Print(key.." ("..(time()-key).."):"..val.."("..XH.xpSum..")"..math.floor((time()-key)/60));
-			newKey = math.floor((time()-key)/60);
+			newKey = math.floor((time()-key)/60)
 
-			XH.rateByMin[newKey] = (XH.rateByMin[newKey] and XH.rateByMin[newKey] + val) or val;
-			XH.rateMax = max(XH.rateMax, XH.rateByMin[newKey]);
+			XH.rateByMin[newKey] = (XH.rateByMin[newKey] and XH.rateByMin[newKey] + val) or val
+			XH.rateMax = max(XH.rateMax, XH.rateByMin[newKey])
 
 			if ((key+XH.timeRange) <= time()) then
 				--XH_XPGains.session.rolling[key] = nil;
-				rateStruct.rolling[key] = nil;
-				change = true;
+				rateStruct.rolling[key] = nil
+				change = true
 			end
-
 		end
-		if (XH_options.showRateGraphs) and (XH.xpCount > 0) and (XH.xpSum > 0) and (time()%10 == 0) then
+		XH.killSum = 0; XH.killCount = 0;
+		if rateStruct.kills then
+			for key, val in pairs(rateStruct.kills) do
+				XH.killCount = XH.killCount + 1
+				XH.killSum = XH.killSum + val
+				newKey = math.floor((time()-key)/60)
+				XH.rateByMin[newKey] = (XH.rateByMin[newKey] and XH.rateByMin[newKey] + val) or val
+				XH.rateMax = max(XH.rateMax, XH.rateByMin[newKey])
+
+				if ((key+XH.timeRange) <= time()) then
+					rateStruct.kills[key] = nil
+					change = true
+				end
+			end
+		end
+
+		if (XH_options.showRateGraphs) and (XH.xpCount > 0 or XH.killCount > 0)
+					and (XH.xpSum > 0 or XH.killSum > 0) and (time()%10 == 0 or test) then
 			-- Every 10 seconds if there is +data
-			local strOut = ":";
+			local strOut = ":"
 			for key=0,((XH.timeRange/60)-1) do
 	--			strOut = strOut .. (XH.rateByMin[key] and '*' or XH.rateGraph[0]);
 				strOut = strOut .. (XH.rateByMin[key] and
-						(XH.rateGraph[ceil((XH.rateByMin[key] * 4)/max(XH.rateMax,1))]) or XH.rateGraph[0]);
+						(XH.rateGraph[math.ceil((XH.rateByMin[key] * 4)/max(XH.rateMax,1))]) or XH.rateGraph[0])
 				if (key>0) and ((key+1)%5 == 0) then
-					strOut = strOut .. "|";
+					strOut = strOut .. "|"
 				end
 			end
-			XH_RepText:SetText(strOut.." : "..XH.xpCount.."("..XH.rateMax..")");
+			XH_RepText:SetText(strOut.." : "..(XH.xpSum>0 and XH.xpCount or XH.killCount).."("..XH.rateMax..")");
 			XH_RepText:Show();
 			--XH.Print(strOut.." : "..XH.xpCount.."("..XH.rateMax.."): "..XH.SecondsToTime( rateStruct.toGo/(XH.xpSum/XH.timeRange) ));
 		end
@@ -323,6 +339,13 @@ function XH.PruneData()
 	for playerPlug, playerData in pairs( XH_Gains ) do
 		local dataCount = 0
 		for section, sectionStruct in pairs( playerData ) do
+			for ts, val in pairs( sectionStruct.kills ) do
+				if ts < now - XH.timeRange then
+					sectionStruct.kills[ts] = nil
+				else
+					dataCount = dataCount + 1
+				end
+			end
 			for ts, val in pairs( sectionStruct.rolling ) do
 				if ts < now - XH.timeRange then
 					sectionStruct.rolling[ts] = nil
