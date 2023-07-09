@@ -92,11 +92,11 @@ function test.test_VARIABLES_LOADED_MyData_toGo_isSet_noSavedData()
 end
 function test.test_VARIABLES_LOADED_MyData_rolling_isSet_noSavedData()
 	XH.VARIABLES_LOADED()
-	assertEquals( 0, XH.me.session.rolling[time()] )
+	assertTrue( XH.me.session.rolling )
 end
 function test.test_VARIABLES_LOADED_MyData_kills_isSet_noSavedData()
 	XH.VARIABLES_LOADED()
-	assertEquals( 0, XH.me.session.kills[time()] )
+	assertTrue( XH.me.session.kills )
 end
 function test.test_VARIABLES_LOADED_MyData_prune_old_xp()
 	XH_Gains = {

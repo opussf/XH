@@ -160,8 +160,8 @@ function XH.InitRate( gainedValue, toGo )
 			["gained"] = gainedValue,
 			["start"] = time(),
 			["toGo"] = toGo,
-			["rolling"] = {[time()] = gainedValue},
-			["kills"] = {[time()] = 0},
+			["rolling"] = {},
+			["kills"] = {},
 	}
 end
 
