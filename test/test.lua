@@ -2,18 +2,18 @@
 
 require "wowTest"
 
-XHFrame = CreateFrame()
-XH_XPBarRested = CreateFrame()
-XH_Text = CreateFrame()
-XH_InstanceText = CreateFrame()
-XH_InstanceTimerBar = CreateFrame()
-XH_InstanceTimerBack = CreateFrame()
-XH_SkillBar = CreateFrame()
-XH_SkillBarCD = CreateFrame()
-XH_RepBar = CreateFrame()
-XH_RepText = CreateFrame()
-format = string.format
-date = os.date
+-- XHFrame = CreateFrame()
+-- XH_XPBarRested = CreateFrame()
+-- XH_Text = CreateFrame()
+-- XH_InstanceText = CreateFrame()
+-- XH_InstanceTimerBar = CreateFrame()
+-- XH_InstanceTimerBack = CreateFrame()
+-- XH_SkillBar = CreateFrame()
+-- XH_SkillBarCD = CreateFrame()
+-- XH_RepBar = CreateFrame()
+-- XH_RepText = CreateFrame()
+-- format = string.format
+-- date = os.date
 
 ParseTOC( "../src/XH.toc" )
 
