@@ -1,7 +1,7 @@
 XH_SLUG, XH = ...
-XH_MSG_ADDONNAME = GetAddOnMetadata( XH_SLUG, "Title" )
-XH_MSG_AUTHOR    = GetAddOnMetadata( XH_SLUG, "Author" )
-XH_MSG_VERSION   = GetAddOnMetadata( XH_SLUG, "Version" )
+XH_MSG_ADDONNAME = C_AddOns.GetAddOnMetadata( XH_SLUG, "Title" )
+XH_MSG_AUTHOR    = C_AddOns.GetAddOnMetadata( XH_SLUG, "Author" )
+XH_MSG_VERSION   = C_AddOns.GetAddOnMetadata( XH_SLUG, "Version" )
 
 -- Colours
 COLOR_RED = "|cffff0000"

@@ -58,10 +58,10 @@ function test.test_KnowsName()
 	assertEquals( "testPlayer", XH.name )
 end
 function test.test_KnowsRealm()
-	assertEquals( "testRealm", XH.realm )
+	assertEquals( "Test Realm", XH.realm )
 end
 function test.test_PlayerSlug()
-	assertEquals( "testRealm-testPlayer", XH.playerSlug )
+	assertEquals( "Test Realm-testPlayer", XH.playerSlug )
 end
 function test.test_KnowsFaction()
 	assertEquals( "Alliance", XH.faction )
@@ -100,7 +100,7 @@ function test.test_VARIABLES_LOADED_MyData_kills_isSet_noSavedData()
 end
 function test.test_VARIABLES_LOADED_MyData_prune_old_xp()
 	XH_Gains = {
-		["testRealm-testPlayer"] = {
+		["Test Realm-testPlayer"] = {
 			["session"] = {
 				["gained"] = 0,	["start"] = 0, ["toGo"] = 0,
 				["rolling"] = {
@@ -121,7 +121,7 @@ function test.test_VARIABLES_LOADED_MyData_prune_old_xp()
 end
 function test.test_VARIABLES_LOADED_MyData_prune_old_kills()
 	XH_Gains = {
-		["testRealm-testPlayer"] = {
+		["Test Realm-testPlayer"] = {
 			["session"] = {
 				["gained"] = 0,	["start"] = 0, ["toGo"] = 0,
 				["rolling"] = {
@@ -142,7 +142,7 @@ function test.test_VARIABLES_LOADED_MyData_prune_old_kills()
 end
 function test.test_VARIABLES_LOADED_MyData_gainedReset()
 	XH_Gains = {
-		["testRealm-testPlayer"] = {
+		["Test Realm-testPlayer"] = {
 			["session"] = {
 				["gained"] = 3, ["start"] = 0, ["toGo"] = 0,
 				["rolling"] = {
@@ -242,7 +242,7 @@ function test.test_XPGainEvent_sets_xpGainedStruct_rolling()
 end
 function test.test_XPGainEvent_sets_xpGain_withPrevious()
 	XH_Gains = {
-		["testRealm-testPlayer"] = {
+		["Test Realm-testPlayer"] = {
 			["session"] = {
 				["gained"] = 3, ["start"] = 0, ["toGo"] = 0,
 				["rolling"] = {
@@ -264,7 +264,7 @@ function test.test_XPGainEvent_sets_xpGain_withPrevious()
 end
 function test.test_XPGainEvent_sets_rolling_withPrevious()
 	XH_Gains = {
-		["testRealm-testPlayer"] = {
+		["Test Realm-testPlayer"] = {
 			["session"] = {
 				["gained"] = 3, ["start"] = 0, ["toGo"] = 0,
 				["rolling"] = {
@@ -331,7 +331,7 @@ end
 function test.test_OnUpdate_sets_XH_Text_withGained_mouseOver()
 	XH.lastUpdate = 0
 	XH_Gains = {
-		["testRealm-testPlayer"] = {
+		["Test Realm-testPlayer"] = {
 			["session"] = {
 				["gained"] = 3, ["start"] = 0, ["toGo"] = 0,
 				["rolling"] = {
@@ -357,7 +357,7 @@ end
 function test.test_OnUpdate_sets_XH_Text_withGained_Normal()
 	XH.lastUpdate = 0
 	XH_Gains = {
-		["testRealm-testPlayer"] = {
+		["Test Realm-testPlayer"] = {
 			["session"] = {
 				["gained"] = 3, ["start"] = 0, ["toGo"] = 0,
 				["rolling"] = {
@@ -458,7 +458,7 @@ function test.test_COMBAT_LOG_EVENT_PARTY_KILL_keeps_count()
 	-- timestamp,event,hideCaster,srcGUID,srcName,srcFlags,srcFlags2,
 	--		targetGUID,targetName,targetFlags,targetFlags2,spellId = CombatLogGetCurrentEventInfo()
 	XH.VARIABLES_LOADED()
-	CombatLogCurrentEventInfo = {time(), "PARTY_KILL", "", "", "testRealm-testPlayer", 0, 0, "", "targetName", 0, 0, 0}
+	CombatLogCurrentEventInfo = {time(), "PARTY_KILL", "", "", "Test Realm-testPlayer", 0, 0, "", "targetName", 0, 0, 0}
 	XH.COMBAT_LOG_EVENT_UNFILTERED()
 	XH.COMBAT_LOG_EVENT_UNFILTERED()
 	killSum = 0
