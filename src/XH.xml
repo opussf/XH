@@ -231,29 +231,15 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
 
 		</Frames>
 		<Scripts>
-			<OnLoad>
-				XH.OnLoad()
-			</OnLoad>
-			<OnUpdate>
-				XH["OnUpdate"]( elapsed )
-			</OnUpdate>
-			<OnEvent>
-				XH[event]( ... )
-			</OnEvent>
+			<OnLoad>XH.OnLoad()</OnLoad>
+			<OnUpdate>XH.OnUpdate()</OnUpdate>
+			<OnEvent>XH[event]( ... )</OnEvent>
 
-			<OnMouseDown>
-				XH_OnDragStart();
-			</OnMouseDown>
-			<OnMouseUp>
-				XH_OnDragStop();
-			</OnMouseUp>
+			<OnMouseDown>XH.OnDragStart()</OnMouseDown>
+			<OnMouseUp>XH.OnDragStop()</OnMouseUp>
 
-			<OnEnter>
-				XH_OnEnter();
-			</OnEnter>
-			<OnLeave>
-				XH_OnLeave();
-			</OnLeave>
+			<OnEnter>XH.OnEnter()</OnEnter>
+			<OnLeave>XH.OnLeave()</OnLeave>
 		</Scripts>
 	</Frame>
 	<Frame name="XHInstanceList" parent="UIParent">
