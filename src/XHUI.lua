@@ -22,8 +22,14 @@ function XH.OnLeave()
 	XH.UpdateBars()
 end
 function XH.OnDragStart()
+	button = GetMouseButtonClicked()
+	if button == "RightButton" then
+		XHFrame:StartMoving()
+		return
+	end
 end
 function XH.OnDragStop()
+	XHFrame:StopMovingOrSizing()
 end
 
 function XH.UpdateBars()
