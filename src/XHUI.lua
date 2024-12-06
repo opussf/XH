@@ -12,14 +12,24 @@ function XH.InitBars()
 	XH_SkillBarCD:Hide()
 end
 -- Enter function, will be ran on mouseover.
-function XH_OnEnter()
+function XH.OnEnter()
 	XH.mouseOver = true
 	XH.UpdateBars()
 end
 -- Leave function, will be ran on mouseoverleave.
-function XH_OnLeave()
+function XH.OnLeave()
 	XH.mouseOver = nil
 	XH.UpdateBars()
+end
+function XH.OnDragStart()
+	button = GetMouseButtonClicked()
+	if button == "RightButton" then
+		XHFrame:StartMoving()
+		return
+	end
+end
+function XH.OnDragStop()
+	XHFrame:StopMovingOrSizing()
 end
 
 function XH.UpdateBars()

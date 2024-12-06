@@ -287,13 +287,13 @@ end
 function test.test_OnEnter_Sets_mouseOver()
 	XH.VARIABLES_LOADED()
 	XH.mouseOver = nil
-	XH_OnEnter()
+	XH.OnEnter()
 	assertTrue( XH.mouseOver )
 end
 function test.test_OnLeave_Clears_mouseOver()
 	XH.VARIABLES_LOADED()
 	XH.mouseOver = true
-	XH_OnLeave()
+	XH.OnLeave()
 	assertIsNil( XH.mouseOver )
 end
 
